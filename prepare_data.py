@@ -6,13 +6,12 @@ import os
 import pandas as pd
 
 
-def from_two_pages_to_jpeg(path='data1_as_one_page'):
+def from_two_pages_to_jpeg(data_path='/Users/mustafasmac/Desktop/4th_year/final_project/data1'):
 
-    if not os.path.exists(path):
-        os.mkdir(path)
+    if not os.path.exists('data1_as_one_page'):
+        os.mkdir('data1_as_one_page')
         print('change the file type from 2 pages of type tiff to one jpeg image...')
-        prepare_doc.prepare_doc_test(
-            '/Users/mustafasmac/Desktop/4th_year/final_project/data1')
+        prepare_doc.prepare_doc_test(data_path)
 
         print('Done.')
 
