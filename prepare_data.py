@@ -9,7 +9,8 @@ from numpy import asarray
 import pandas as pd
 from matplotlib import pyplot as plt
 
-def from_two_pages_to_jpeg(data_path='/Users/97258/Desktop/data from yehuda/data1'):
+
+def from_two_pages_to_jpeg(data_path):
 
     if not os.path.exists('data1_as_one_page'):
         os.mkdir('data1_as_one_page')
@@ -17,6 +18,7 @@ def from_two_pages_to_jpeg(data_path='/Users/97258/Desktop/data from yehuda/data
         prepare_doc.prepare_doc_test(data_path)
 
         print('Done.')
+
 
 def creating_lines_for_each_person(path='data1_as_one_page'):
 
@@ -47,42 +49,47 @@ def creating_lines_for_each_person(path='data1_as_one_page'):
 
         print('Done.')
 
+
 def Delete_White_Lines(path='data_for_each_person'):
-    #check if the path exist
+    # check if the path exist
     if os.path.exists(path):
-        print("get inside each person...")
-        dir_name=path
-        # get the folder name 
-        dirs=os.listdir(dir_name)
+        print('started deleting bad lines')
+        dir_name = path
+        # get the folder name
+        dirs = os.listdir(dir_name)
         # get inside each person
-        count=0
+        count = 0
         for _dir in dirs:
             if _dir != '.Ds_Store':
-                files=os.listdir(dir_name+"/"+_dir)
+                files = os.listdir(dir_name+"/"+_dir)
                 # get inside each img in person
                 for indx, img in enumerate(files):
-                    imgpath=dir_name+"/"+_dir+"/"+img
-                    # read the image 
-                    img=cv2.imread(imgpath,0)
-                    # crop the left side of it 
-                    left_sideof_line=img[0:int(img.shape[0]),0:int(img.shape[1]/2)]
+                    imgpath = dir_name+"/"+_dir+"/"+img
+                    # read the image
+                    img = cv2.imread(imgpath, 0)
+                    # crop the left side of it
+                    left_sideof_line = img[0:int(
+                        img.shape[0]), 0:int(img.shape[1]/2)]
                     # crop the right side
-                    right_sideof_line=img[0:int(img.shape[0]),int(img.shape[1]/2):int(img.shape[1])]
+                    right_sideof_line = img[0:int(img.shape[0]), int(
+                        img.shape[1]/2):int(img.shape[1])]
                     # calculate the wihite px of ledt side
-                    white_pixeles_for_left=np.count_nonzero(left_sideof_line)
+                    white_pixeles_for_left = np.count_nonzero(left_sideof_line)
                     # calculate the black px from the left side
-                    Black_pixeles_for_left=left_sideof_line.size-white_pixeles_for_left
+                    Black_pixeles_for_left = left_sideof_line.size-white_pixeles_for_left
                     # calculate the wihite px of right side
-                    white_pixeles_for_right=np.count_nonzero(right_sideof_line)
+                    white_pixeles_for_right = np.count_nonzero(
+                        right_sideof_line)
                     # calculate the black px from the right side
-                    Black_pixeles_for_right=right_sideof_line.size-white_pixeles_for_right
-                    # if the wihte px in the right side equal to the size of the right side or smaler than it alittle 
+                    Black_pixeles_for_right = right_sideof_line.size-white_pixeles_for_right
+                    # if the wihte px in the right side equal to the size of the right side or smaler than it alittle
                     # so we will delete the line
-                    if right_sideof_line.size - 1100 <white_pixeles_for_right <=right_sideof_line.size:
-                        count+=1
-                        #os.remove(imgpath)
-        print(count)              
-                                
+                    if right_sideof_line.size - 1100 < white_pixeles_for_right <= right_sideof_line.size:
+                        count += 1
+                        os.remove(imgpath)
+        print('Done, number of deleted lines: {}'.format(count))
+
+
 def find_match_pairs(path='data_for_each_person'):
 
     if os.path.exists(path):
@@ -110,6 +117,7 @@ def find_match_pairs(path='data_for_each_person'):
         csv_file.to_csv('test.csv', index=False, sep=',', header=0)
 
         print('Done.')
+
 
 def find_miss_match_pairs(path='data_for_each_person'):
 
@@ -146,7 +154,8 @@ def find_miss_match_pairs(path='data_for_each_person'):
 
 if __name__ == '__main__':
     print('Starting the preparing phase...')
-    from_two_pages_to_jpeg()
+    from_two_pages_to_jpeg(
+        '/Users/mustafasmac/Desktop/4th_year/final_project/data1')
     creating_lines_for_each_person()
     Delete_White_Lines()
     find_match_pairs()
