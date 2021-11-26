@@ -8,6 +8,7 @@ import numpy as np
 from numpy import asarray
 import pandas as pd
 from matplotlib import pyplot as plt
+import glob
 
 
 def from_two_pages_to_jpeg(data_path):
@@ -84,7 +85,7 @@ def Delete_White_Lines(path='data_for_each_person'):
                     Black_pixeles_for_right = right_sideof_line.size-white_pixeles_for_right
                     # if the wihte px in the right side equal to the size of the right side or smaler than it alittle
                     # so we will delete the line
-                    if right_sideof_line.size - 1100 < white_pixeles_for_right <= right_sideof_line.size:
+                    if right_sideof_line.size - 1500 < white_pixeles_for_right <= right_sideof_line.size:
                         count += 1
                         os.remove(imgpath)
         print('Done, number of deleted lines: {}'.format(count))
@@ -152,12 +153,29 @@ def find_miss_match_pairs(path='data_for_each_person'):
         print('Done.')
 
 
+def create_label_file(file_1, file_2):
+
+    csv1 = pd.read_csv(file_1, header=None, sep=',')
+    csv2 = pd.read_csv(file_2, header=None, sep=',')
+    csv1 = csv1.sample(frac=1)
+    csv2 = csv2.sample(frac=1)
+
+    csv1.to_csv('test.csv', index=False, sep=',', header=0)
+    csv2.to_csv('test1.csv', index=False, sep=',', header=0)
+
+    labels = pd.concat([pd.read_csv(file_1, header=None, sep=','), pd.read_csv(file_2, header=None, sep=',')
+                        ])
+    labels = labels.sample(frac=1)
+    labels.to_csv('labels.csv', index=False, sep=',', header=0)
+
+
 if __name__ == '__main__':
-    print('Starting the preparing phase...')
-    from_two_pages_to_jpeg(
-        '/Users/mustafasmac/Desktop/4th_year/final_project/data1')
-    creating_lines_for_each_person()
-    Delete_White_Lines()
-    find_match_pairs()
-    find_miss_match_pairs()
+    # print('Starting the preparing phase...')
+    # from_two_pages_to_jpeg(
+    #     '/Users/mustafasmac/Desktop/4th_year/final_project/data1')
+    # creating_lines_for_each_person()
+    # Delete_White_Lines()
+    # find_match_pairs()
+    # find_miss_match_pairs()
+    create_label_file('test.csv', 'test1.csv')
     print('Done. Now you can use the data')
