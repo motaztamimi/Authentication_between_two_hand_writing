@@ -1,14 +1,11 @@
-from posixpath import dirname
 import detection_function
 import cv2
 import prepare_doc
 from PIL import Image
 import os
 import numpy as np
-from numpy import asarray
 import pandas as pd
 from matplotlib import pyplot as plt
-import glob
 
 
 def from_two_pages_to_jpeg(data_path):
@@ -115,7 +112,7 @@ def find_match_pairs(path='data_for_each_person'):
                             genuin_data.append(to_add)
 
         csv_file = pd.DataFrame(genuin_data)
-        csv_file.to_csv('test.csv', index=False, sep=',', header=0)
+        csv_file.to_csv('match_labels.csv', index=False, sep=',', header=0)
 
         print('Done.')
 
@@ -148,34 +145,32 @@ def find_miss_match_pairs(path='data_for_each_person'):
                                     diff_data.append(to_add)
 
         csv_file = pd.DataFrame(diff_data)
-        csv_file.to_csv('test1.csv', index=False, sep=',', header=0)
+        csv_file.to_csv('miss_match_labels.csv',
+                        index=False, sep=',', header=0)
 
         print('Done.')
 
 
-def create_label_file(file_1, file_2):
+def create_label_file(file_1, file_2, num):
 
-    csv1 = pd.read_csv(file_1, header=None, sep=',')
-    csv2 = pd.read_csv(file_2, header=None, sep=',')
-    csv1 = csv1.sample(frac=1)
-    csv2 = csv2.sample(frac=1)
+    match_pairs = pd.read_csv(file_1, header=None, sep=',', nrows=num)
+    miss_match_pairs = pd.read_csv(file_2, header=None, sep=',', nrows=num)
 
-    csv1.to_csv('test.csv', index=False, sep=',', header=0)
-    csv2.to_csv('test1.csv', index=False, sep=',', header=0)
+    match_pairs = match_pairs.sample(frac=1)
+    miss_match_pairs = miss_match_pairs.sample(frac=1)
 
-    labels = pd.concat([pd.read_csv(file_1, header=None, sep=','), pd.read_csv(file_2, header=None, sep=',')
-                        ])
+    labels = pd.concat([match_pairs, miss_match_pairs])
     labels = labels.sample(frac=1)
     labels.to_csv('labels.csv', index=False, sep=',', header=0)
 
 
 if __name__ == '__main__':
-    # print('Starting the preparing phase...')
-    # from_two_pages_to_jpeg(
-    #     '/Users/mustafasmac/Desktop/4th_year/final_project/data1')
-    # creating_lines_for_each_person()
-    # Delete_White_Lines()
-    # find_match_pairs()
-    # find_miss_match_pairs()
-    create_label_file('test.csv', 'test1.csv')
+    print('Starting the preparing phase...')
+    from_two_pages_to_jpeg(
+        '/Users/mustafasmac/Desktop/4th_year/final_project/data1')
+    creating_lines_for_each_person()
+    Delete_White_Lines()
+    find_match_pairs()
+    find_miss_match_pairs()
+    create_label_file('match_labels.csv', 'miss_match_labels.csv', 1000)
     print('Done. Now you can use the data')
