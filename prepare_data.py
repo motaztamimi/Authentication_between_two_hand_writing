@@ -5,7 +5,6 @@ from PIL import Image
 import os
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 
 
 def from_two_pages_to_jpeg(data_path):
