@@ -31,8 +31,8 @@ class LinesDataSet(Dataset):
 
             idx = idx.tolist()
 
-        img0_path = self.labels.iloc[idx, 0]
-        img1_path = self.labels.iloc[idx, 1]
+        img0_path = os.path.join(self.root_dir, self.labels.iloc[idx, 0])
+        img1_path = os.path.join(self.root_dir, self.labels.iloc[idx, 1])
         img0 = io.imread(img0_path)
         img1 = io.imread(img1_path)
 
@@ -45,7 +45,7 @@ class LinesDataSet(Dataset):
         return {'img0': img0, 'img1': img1, 'label': label}
 
 
-line_dataSet = LinesDataSet(csv_file='labels.csv',
+line_dataSet = LinesDataSet(csv_file='Train_Labels.csv',
                             root_dir='data_for_each_person')
 
 fig = plt.figure()
