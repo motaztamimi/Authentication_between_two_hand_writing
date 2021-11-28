@@ -5,6 +5,7 @@ from PIL import Image
 import os
 import numpy as np
 import pandas as pd
+import random
 
 
 def from_two_pages_to_jpeg(data_path):
@@ -86,37 +87,41 @@ def Delete_White_Lines(path='data_for_each_person'):
                         os.remove(imgpath)
         print('Done, number of deleted lines: {}'.format(count))
 
+def Sorting_Dir(dirname):
+    return int(dirname.split("_")[1])
 
-def find_match_pairs(path='data_for_each_person'):
+def find_match_pairs(path='data_for_each_person',start=0,end=39,filename='match_labels.csv'):
 
     if os.path.exists(path):
-
         print('Creating all possible pairs of lines that creat a Match and store the labels in csv file...')
 
         genuin_data = []
 
         dir_name = path
         dirs = os.listdir(dir_name)
+        dirs= sorted(dirs,key= Sorting_Dir)
 
-        for _dir in dirs:
+        for _dir in dirs[start:end]:
             if _dir != '.DS_Store':
                 files = os.listdir(dir_name + '/' + _dir)
                 for indx, img1 in enumerate(files):
                     for img2 in files[indx:]:
                         to_add = []
                         if img1 != img2:
-                            to_add.append(dir_name + '/' + _dir + '/' + img1)
-                            to_add.append(dir_name + '/' + _dir + '/' + img2)
+                            to_add.append(_dir + '/' + img1)
+                            to_add.append(_dir + '/' + img2)
                             to_add.append('0')
                             genuin_data.append(to_add)
 
         csv_file = pd.DataFrame(genuin_data)
-        csv_file.to_csv('match_labels.csv', index=False, sep=',', header=0)
+        csv_file=csv_file.sample(frac=1)
+
+        csv_file.to_csv(filename, index=False, sep=',', header=0)
 
         print('Done.')
 
 
-def find_miss_match_pairs(path='data_for_each_person'):
+def find_miss_match_pairs(path='data_for_each_person',start= 0,end= 39,filename='miss_match_labels.csv'):
 
     if os.path.exists(path):
 
@@ -125,7 +130,8 @@ def find_miss_match_pairs(path='data_for_each_person'):
         diff_data = []
         dir_name = path
         dirs = os.listdir(dir_name)
-
+        dirs= sorted(dirs,key= Sorting_Dir)
+        dirs=dirs[start:end]
         for indx, _dir in enumerate(dirs):
             if _dir != '.DS_Store':
                 files_1 = os.listdir(dir_name + '/' + _dir)
@@ -136,40 +142,36 @@ def find_miss_match_pairs(path='data_for_each_person'):
                             for img1 in files_1:
                                 for img2 in files_2:
                                     to_add = []
-                                    to_add.append(dir_name + '/' +
-                                                  _dir + '/' + img1)
-                                    to_add.append(dir_name + '/' +
-                                                  _dir_ + '/' + img2)
+                                    to_add.append(_dir + '/' + img1)
+                                    to_add.append(_dir_ + '/' + img2)
                                     to_add.append('1')
                                     diff_data.append(to_add)
 
         csv_file = pd.DataFrame(diff_data)
-        csv_file.to_csv('miss_match_labels.csv',
+        csv_file=csv_file.sample(frac=1)
+        csv_file.to_csv(filename,
                         index=False, sep=',', header=0)
 
         print('Done.')
 
 
-def create_label_file(file_1, file_2, num):
-
-    match_pairs = pd.read_csv(file_1, header=None, sep=',', nrows=num)
-    miss_match_pairs = pd.read_csv(file_2, header=None, sep=',', nrows=num)
-
-    match_pairs = match_pairs.sample(frac=1)
-    miss_match_pairs = miss_match_pairs.sample(frac=1)
-
+def create_label_file(file_1, file_2, num,filename):
+    match_pairs = pd.read_csv(file_1, header= None, sep= ',',nrows= num )
+    miss_match_pairs = pd.read_csv(file_2,header= None ,sep= ',',nrows= num )
     labels = pd.concat([match_pairs, miss_match_pairs])
-    labels = labels.sample(frac=1)
-    labels.to_csv('labels.csv', index=False, sep=',', header=0)
-
+    labels= labels.sample(frac=1)
+    labels.to_csv(filename, index=False, sep=',', header=0)
 
 if __name__ == '__main__':
     print('Starting the preparing phase...')
-    from_two_pages_to_jpeg(
-        '/Users/mustafasmac/Desktop/4th_year/final_project/data1')
-    creating_lines_for_each_person()
-    Delete_White_Lines()
-    find_match_pairs()
-    find_miss_match_pairs()
-    create_label_file('match_labels.csv', 'miss_match_labels.csv', 1000)
+    # from_two_pages_to_jpeg(
+    #     '/Users/mustafasmac/Desktop/4th_year/final_project/data1')
+    # creating_lines_for_each_person()
+    # Delete_White_Lines()
+    find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
+    find_match_pairs(start=30,end=39,filename="Test_match_labels.csv")
+    find_miss_match_pairs(start=0,end=30,filename="Train_miss_match_labels.csv")
+    find_miss_match_pairs(start=30,end=39,filename="Test_miss_match_labels.csv")
+    create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 1000, "Train_Labels.csv")
+    create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 1000, "Test_Labels.csv")
     print('Done. Now you can use the data')
