@@ -42,30 +42,9 @@ class LinesDataSet(Dataset):
             self.transform(img0)
             self.transform(img1)
 
-        return {'img0': img0, 'img1': img1, 'label': label}
+        return img0, img1, torch.from_numpy(np.array([int(label)],dtype=np.float32))
 
 
 line_dataSet = LinesDataSet(csv_file='Train_Labels.csv',
-                            root_dir='data_for_each_person')
+                            root_dir='data_for_each_person',transform=10)
 
-fig = plt.figure()
-# figure(figsize=(4, 4), dpi=20)
-
-for i in range(1, len(line_dataSet), 2):
-    sample = line_dataSet[i]
-
-    print(i, sample['img0'].shape, sample['img1'].shape, sample['label'])
-    ax = plt.subplot(1, 2, i)
-    plt.tight_layout()
-    ax.set_title('Sample #{}'.format(i))
-    ax.axis('off')
-    plt.imshow(sample['img0'], cmap='gray')
-
-    ax = plt.subplot(1, 2, i + 1)
-    plt.tight_layout()
-    ax.set_title('Sample #{}'.format(i))
-    ax.axis('off')
-    plt.imshow(sample['img1'], cmap='gray')
-    if i == 1:
-        plt.show()
-        break
