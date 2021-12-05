@@ -12,7 +12,7 @@ from data_set import LinesDataSet
 
 class ContrastiveLoss(nn.Module):
     "Contrastive loss function"
-    def __init__(self, margin=2.0):
+    def __init__(self, margin=1.0):
         super(ContrastiveLoss, self).__init__()
         self.margin = margin
             
@@ -77,17 +77,19 @@ if __name__ == "__main__":
     model = torchvision.models.resnet18(pretrained = False)
     model.conv1=torch.nn.Conv2d(1,64,7,2,3,bias=False)
     num_features = model.fc.in_features
+    print(num_features)
     model.fc = nn.Linear(num_features, 2)
     model = model.cuda()
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
     loss_history = []
     acc_history = []
 
-    # for i in range (30):
-    #     train(model, loss_function, optimizer, train_line_data_loader, loss_history)
+    for i in range (5):
+        print("epoch number: {}".format(i+1))
+        train(model, loss_function, optimizer, train_line_data_loader, loss_history)
 
-    # torch.save(model.state_dict(), 'model.pt')
-    model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
+    torch.save(model.state_dict(), 'model.pt')
+    # model.load_state_dict(torch.load('model_margin_1_lr_0,01_u_0,9,outs_2_18layer_epchs_3.pt', map_location='cuda:0'))
 
     test(model, test_line_data_loader, acc_history)
 
