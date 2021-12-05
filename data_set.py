@@ -4,9 +4,7 @@ import pandas as pd
 from skimage import io, transform
 import numpy as np
 import matplotlib.pyplot as plt
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, utils
-from matplotlib.pyplot import figure, prism
+from torch.utils.data import Dataset
 
 
 class LinesDataSet(Dataset):

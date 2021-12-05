@@ -163,9 +163,9 @@ def create_label_file(file_1, file_2, num,filename):
     labels.to_csv(filename, index=False, sep=',', header=0)
 
 def resize_image():
-     if os.path.exists("C:/Users/97258/Documents/GitHub/Authentication_between_two_hand_writing/data_for_each_person"):
+     if os.path.exists("data_for_each_person"):
         print('Creating all possible pairs of lines that creat a Match and store the labels in csv file...')
-     dir_name = "C:/Users/97258/Documents/GitHub/Authentication_between_two_hand_writing/data_for_each_person"
+     dir_name = "data_for_each_person"
      dirs = os.listdir(dir_name)
      for _dir in dirs:
          if _dir !='.DS_Store':
@@ -185,16 +185,15 @@ def resize_image():
 
 
 if __name__ == '__main__':
-    print('Starting the preparing phase...')
-    # from_two_pages_to_jpeg(
-    #     '/Users/mustafasmac/Desktop/4th_year/final_project/data1')
-    #creating_lines_for_each_person()
-    #Delete_White_Lines()
+    # print('Starting the preparing phase...')
+    # from_two_pages_to_jpeg("C:/Users/Mustafa/Desktop/4th_year/final_project/data1")
+    # creating_lines_for_each_person()
+    # Delete_White_Lines()
     find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
     find_match_pairs(start=30,end=39,filename="Test_match_labels.csv")
     find_miss_match_pairs(start=0,end=30,filename="Train_miss_match_labels.csv")
     find_miss_match_pairs(start=30,end=39,filename="Test_miss_match_labels.csv")
-    create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 1000, "Train_Labels.csv")
-    create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 1000, "Test_Labels.csv")
+    create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 3000, "Train_Labels.csv")
+    create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 3000, "Test_Labels.csv")
     print('Done. Now you can use the data')
     resize_image()

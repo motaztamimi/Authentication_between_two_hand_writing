@@ -13,11 +13,11 @@ import cv2
 
 
 def find_min():
-     if os.path.exists("C:/Users/97258/Documents/GitHub/Authentication_between_two_hand_writing/data_for_each_person"):
+     if os.path.exists("data_for_each_person"):
 
         print('Creating all possible pairs of lines that creat a Match and store the labels in csv file...')
      max_height=9000
-     dir_name = "C:/Users/97258/Documents/GitHub/Authentication_between_two_hand_writing/data_for_each_person"
+     dir_name = "data_for_each_person"
      dirs = os.listdir(dir_name)
      for _dir in dirs:
          if _dir !='.DS_Store':
