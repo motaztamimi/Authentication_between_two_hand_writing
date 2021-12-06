@@ -20,9 +20,9 @@ class ContrastiveLoss(nn.Module):
     def forward(self, output1, output2, label):
         cos  = torch.nn.CosineSimilarity(dim=1, eps=1e-8)
         # euclidean_distance = F.pairwise_distance(output1, output2,keepdim=True)
-        sim = cos(output1, output2) + 1
-        loss_contrastive = torch.mean((1-label)* torch.pow(sim, 2) +
-                                      (label) * torch.pow(torch.clamp(self.margin - sim, min=0.0), 2))
+        sim = 1 - cos(output1, output2) 
+        loss_contrastive = torch.mean((label)* torch.pow(sim, 2) +
+                                      (1-label) * torch.pow(torch.clamp(self.margin - sim, min=0.0), 2))
 
         return loss_contrastive
 
@@ -61,11 +61,10 @@ def test ( model, test_loader, acc_history):
         # dist_ = F.pairwise_distance(output1, output2)
         # dist_ = torch.pow(dist_, 2)
         cos  = torch.nn.CosineSimilarity(dim=1, eps=1e-8)
-        sim = cos(output1, output2)
-
-        if label.item() == 1. and  sim.item() >= 1.: 
+        sim = 1 - cos(output1, output2)
+        if label.item() == 1. and  sim.item() >= 0.5: 
             acc_history.append(1)
-        elif label.item() == 0.  and sim.item() < 1.:
+        elif label.item() == 0.  and sim.item() < 0.5:
             acc_history.append(1)
         else:
             acc_history.append(0)
@@ -84,11 +83,11 @@ if __name__ == "__main__":
     print(num_features)
     model.fc = nn.Linear(num_features, 128)
     model = model.cuda()
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    optimizer = torch.optim.Adam(model.parameters(), 0.0001)
     loss_history = []
-    
+    all_acc = []
 
-    for i in range (10):
+    for i in range (30):
 
         print("epoch number: {}".format(i+1))
         train(model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
@@ -97,6 +96,10 @@ if __name__ == "__main__":
         acc_history = []
         test(model, test_line_data_loader, acc_history)
         print("acc: {}".format(sum(acc_history) / len(acc_history)))
+        all_acc.append(sum(acc_history) / len(acc_history))
+        if i % 5 == 0:
+                torch.save(model.state_dict(), 'model.pt')
+
 
 
     torch.save(model.state_dict(), 'model.pt')
