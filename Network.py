@@ -18,11 +18,11 @@ class ContrastiveLoss(nn.Module):
         self.margin = margin
             
     def forward(self, output1, output2, label):
-        cos  = torch.nn.CosineSimilarity(dim=1, eps=1e-8)
-        # euclidean_distance = F.pairwise_distance(output1, output2,keepdim=True)
-        sim = 1 - cos(output1, output2) 
-        loss_contrastive = torch.mean((label)* torch.pow(sim, 2) +
-                                      (1-label) * torch.pow(torch.clamp(self.margin - sim, min=0.0), 2))
+        distance_ = F.pairwise_distance(output1, output2,keepdim=True)
+        # cos  = torch.nn.CosineSimilarity(dim=1, eps=1e-8)
+        # distance_ = 1 - cos(output1, output2) 
+        loss_contrastive = torch.mean((label)* torch.pow(distance_, 2) +
+                                      (1-label) * torch.pow(torch.clamp(self.margin - distance_, min=0.0), 2))
 
         return loss_contrastive
 
@@ -58,13 +58,13 @@ def test ( model, test_loader, acc_history):
         label = label.cuda()
         output1 = model(image1)
         output2 = model(image2)
-        # dist_ = F.pairwise_distance(output1, output2)
-        # dist_ = torch.pow(dist_, 2)
-        cos  = torch.nn.CosineSimilarity(dim=1, eps=1e-8)
-        sim = 1 - cos(output1, output2)
-        if label.item() == 1. and  sim.item() >= 0.5: 
+        dist_ = F.pairwise_distance(output1, output2)
+        dist_ = torch.pow(dist_, 2)
+        # cos  = torch.nn.CosineSimilarity(dim=1, eps=1e-8)
+        # dist_ = 1 - cos(output1, output2)
+        if label.item() == 1. and  dist_.item() >= 0.5: 
             acc_history.append(1)
-        elif label.item() == 0.  and sim.item() < 0.5:
+        elif label.item() == 0.  and dist_.item() < 0.5:
             acc_history.append(1)
         else:
             acc_history.append(0)
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     print(num_features)
     model.fc = nn.Linear(num_features, 128)
     model = model.cuda()
-    optimizer = torch.optim.Adam(model.parameters(), 0.0001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     loss_history = []
     all_acc = []
 
