@@ -98,10 +98,10 @@ if __name__ == "__main__":
     my_model = Net().cuda()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
 
-    my_model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
-    for i in range(5):
-        # train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
-        # torch.save(my_model.state_dict(), 'model.pt')
+    # my_model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
+    for i in range(10):
+        train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
+        torch.save(my_model.state_dict(), 'model.pt')
         print('testing')
         test(my_model, test_line_data_loader, acc_history=[])
     print(all_acc)
