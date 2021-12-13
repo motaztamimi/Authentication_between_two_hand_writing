@@ -1,5 +1,4 @@
 import torch
-from torch._C import ThroughputBenchmark
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
@@ -27,7 +26,7 @@ class Net(nn.Module):
         output2 = self.forward_once(input2)
         h_ = output1 * output2
         dist_ = torch.pow((output1 - output2), 2)
-        V_ = torch.cat((output1, output2, torch.pow(dist_, 2), h_), dim=1)
+        V_ = torch.cat((output1, output2, dist_, h_), dim=1)
         output = self.fc1(V_)
         return output
 
@@ -98,19 +97,21 @@ if __name__ == "__main__":
     my_model = Net().cuda()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
 
-    # my_model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
-    for i in range(5):
-        train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
-        torch.save(my_model.state_dict(), 'model.pt')
-        print('testing')
-        test(my_model, test_line_data_loader, acc_history=[])
-    print(all_acc)
+    print(my_model)
 
-    plt.subplot(121)
-    plt.plot(loss_history)
-    plt.title('train loss')
-    plt.subplot(122)
-    plt.plot(all_acc)
-    plt.title('test acc')
-    plt.show()
+    # my_model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
+    # for i in range(5):
+    #     train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
+    #     torch.save(my_model.state_dict(), 'model.pt')
+    #     print('testing')
+    #     test(my_model, test_line_data_loader, acc_history=[])
+    # print(all_acc)
+
+    # plt.subplot(121)
+    # plt.plot(loss_history)
+    # plt.title('train loss')
+    # plt.subplot(122)
+    # plt.plot(all_acc)
+    # plt.title('test acc')
+    # plt.show()
 
