@@ -14,8 +14,7 @@ def from_two_pages_to_jpeg(data_path):
         os.mkdir('data1_as_one_page')
         print('change the file type from 2 pages of type tiff to one jpeg image...')
         prepare_doc.prepare_doc_test(data_path)
-
-        print('Done.')
+    print('Done.')
 
 
 def creating_lines_for_each_person(path='data1_as_one_page'):
@@ -185,15 +184,15 @@ def resize_image():
 
 
 if __name__ == '__main__':
-    # print('Starting the preparing phase...')
-    # from_two_pages_to_jpeg("C:/Users/Mustafa/Desktop/4th_year/final_project/data1")
+    print('Starting the preparing phase...')
+    from_two_pages_to_jpeg("C:/Users/FinalProject/Desktop/final_project/data")
     # creating_lines_for_each_person()
     # Delete_White_Lines()
-    find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
-    find_match_pairs(start=30,end=39,filename="Test_match_labels.csv")
-    find_miss_match_pairs(start=0,end=30,filename="Train_miss_match_labels.csv")
-    find_miss_match_pairs(start=30,end=39,filename="Test_miss_match_labels.csv")
-    create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 3000, "Train_Labels.csv")
-    create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 500, "Test_Labels.csv")
-    print('Done. Now you can use the data')
+    # find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
+    # find_match_pairs(start=30,end=39,filename="Test_match_labels.csv")
+    # find_miss_match_pairs(start=0,end=30,filename="Train_miss_match_labels.csv")
+    # find_miss_match_pairs(start=30,end=39,filename="Test_miss_match_labels.csv")
+    # create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 3000, "Train_Labels.csv")
+    # create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 500, "Test_Labels.csv")
+    # print('Done. Now you can use the data')
     # resize_image()
