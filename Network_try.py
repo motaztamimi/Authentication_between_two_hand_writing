@@ -32,7 +32,7 @@ class Net(nn.Module):
 
 def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
     model.train()
-    for indx , data in enumerate(train_loader):
+    for _ , data in enumerate(train_loader):
         image1, image2, label = data
         image1 = image1.float().cuda()
         image2 = image2.float().cuda()
@@ -61,7 +61,7 @@ def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
 
 def test ( model,test_loader, acc_history):
     model.eval()
-    for indx , data in enumerate(test_loader):
+    for _ , data in enumerate(test_loader):
         image1, image2, label = data
         image1 = image1.float().cuda()
         image2 = image2.float().cuda()
@@ -97,21 +97,19 @@ if __name__ == "__main__":
     my_model = Net().cuda()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
 
-    print(my_model)
+    my_model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
+    for i in range(5):
+        train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
+        torch.save(my_model.state_dict(), 'model.pt')
+        print('Testing on Train Data_set...')
+        test(my_model, test_line_data_loader, acc_history=[])
+    print(all_acc)
 
-    # my_model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
-    # for i in range(5):
-    #     train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
-    #     torch.save(my_model.state_dict(), 'model.pt')
-    #     print('testing')
-    #     test(my_model, test_line_data_loader, acc_history=[])
-    # print(all_acc)
-
-    # plt.subplot(121)
-    # plt.plot(loss_history)
-    # plt.title('train loss')
-    # plt.subplot(122)
-    # plt.plot(all_acc)
-    # plt.title('test acc')
-    # plt.show()
+    plt.subplot(121)
+    plt.plot(loss_history)
+    plt.title('train loss')
+    plt.subplot(122)
+    plt.plot(all_acc)
+    plt.title('test acc')
+    plt.show()
 
