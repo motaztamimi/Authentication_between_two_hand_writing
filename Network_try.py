@@ -32,6 +32,7 @@ class Net(nn.Module):
 
 def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
     model.train()
+    batches_loss = []
     for _ , data in enumerate(train_loader):
         image1, image2, label = data
         image1 = image1.float().cuda()
@@ -55,11 +56,12 @@ def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
         loss = loss_function(output, new_label)
         print("epoch Number: {} bathc_loss: {}".format(epoch, loss.item()))
         loss_history.append(loss.cpu().item())
+        batches_loss.append(loss.cpu().item())
         loss.backward()
         optimizer.step()
+    loss_history_for_ephoces.append( sum(batches_loss) / len(batches_loss))
 
-
-def test ( model,test_loader, acc_history):
+def test ( model,test_loader, acc_history, train_flag):
     model.eval()
     for _ , data in enumerate(test_loader):
         image1, image2, label = data
@@ -77,7 +79,10 @@ def test ( model,test_loader, acc_history):
                 acc_history.append(0)
     
     print('test acc: {}'.format(sum(acc_history) / len(acc_history)))
-    all_acc.append(sum(acc_history) / len(acc_history))
+    if train_flag:
+        all_acc_train.append(sum(acc_history) / len(acc_history))
+    else:
+        all_acc_test.append(sum(acc_history) / len(acc_history))
             
 
 
@@ -89,27 +94,43 @@ if __name__ == "__main__":
     test_line_data_set = LinesDataSet(csv_file="Test_Labels.csv", root_dir='data_for_each_person', transform=transforms.Compose([transforms.ToTensor()]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=50)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
+    train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=1)
 
     loss_function = nn.MSELoss()
 
     loss_history = []
-    all_acc = []
+    loss_history_for_ephoces = []
+    all_acc_test = []
+    all_acc_train = []
     my_model = Net().cuda()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
 
-    my_model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
-    for i in range(5):
+    # my_model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
+    epoches = 2
+    for i in range(epoches):
         train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
         torch.save(my_model.state_dict(), 'model.pt')
         print('Testing on Train Data_set...')
-        test(my_model, test_line_data_loader, acc_history=[])
-    print(all_acc)
+        test(my_model, train_line_data_loader_for_test, acc_history = [], train_flag = True)
+        print('Testing on Test Data_set...')
+        test(my_model, test_line_data_loader, acc_history = [], train_flag = False)
 
-    plt.subplot(121)
+
+    plt.subplot(2,2,1)
+    plt.plot(loss_history_for_ephoces)
+  
+    plt.title('train epoches loss')
+    plt.subplot(2,2,2)
     plt.plot(loss_history)
+
     plt.title('train loss')
-    plt.subplot(122)
-    plt.plot(all_acc)
+    plt.subplot(2,2,3)
+    plt.plot(all_acc_train)
+ 
+    plt.title('train acc')
+    plt.subplot(2,2,4)
+    plt.plot(all_acc_test)
     plt.title('test acc')
+    plt.savefig("model result.jpg")
     plt.show()
 
