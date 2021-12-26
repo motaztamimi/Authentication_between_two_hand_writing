@@ -12,7 +12,7 @@ class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.cnn = torchvision.models.resnet18(pretrained = False)
-        self.cnn.conv1 = torch.nn.Conv2d(1, 64, 7, 2, 3, bias=False)
+        self.cnn.conv1 = torch.nn.Conv2d(1, 64, 3,bias=False)
         num_features = self.cnn.fc.in_features
         self.cnn.fc = nn.Sequential(nn.Linear(num_features, 200), nn.ReLU())
         self.fc1 = nn.Sequential(nn.Linear(800, 2), nn.Sigmoid())
@@ -90,9 +90,10 @@ def test ( model,test_loader, acc_history, train_flag):
 
 
 if __name__ == "__main__":
+    torch.manual_seed(17)
     train_line_data_set = LinesDataSet(csv_file="Train_Labels.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor()]))
     test_line_data_set = LinesDataSet(csv_file="Test_Labels.csv", root_dir='data_for_each_person', transform=transforms.Compose([transforms.ToTensor()]))
-    train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=50)
+    train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=1)
 
@@ -106,7 +107,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
 
     # my_model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
-    epoches = 2
+    epoches = 30
     for i in range(epoches):
         train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
         torch.save(my_model.state_dict(), 'model.pt')
