@@ -190,7 +190,7 @@ if __name__ == "__main__":
             plt.savefig("graphs_for_kenral_size_3.png")
 
         if k == 1:
-            plt.savefig("graphs_for_kenral_size_3.png")
+            plt.savefig("graphs_for_kenral_size_7.png")
         
         if k == 2:
             plt.savefig("graphs_for_kenral_size_3_fc_64.png")
