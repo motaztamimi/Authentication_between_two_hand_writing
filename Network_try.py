@@ -153,6 +153,6 @@ if __name__ == "__main__":
         plt.title('test acc')
 
         if k == 1:
-            plt.savefig("graphs_for_kenral_size_3.png", dpi=100., pad_inches=0.5)
+            plt.savefig("graphs_for_kenral_size_3.png")
         else:
-            plt.savefig("graphs_for_kenral_size_3.png", dpi=100., pad_inches=0.5)
+            plt.savefig("graphs_for_kenral_size_3.png")
