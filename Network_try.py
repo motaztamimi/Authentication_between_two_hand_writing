@@ -138,7 +138,7 @@ if __name__ == "__main__":
         test_for_confusion_matrix(my_model, test_line_data_loader)
         cf_matrix = confusion_matrix(y_true, y_pred)
         classes = ('0', '1')
-        df_cm = pd.DataFrame(cf_matrix, index = [i for i in classes],
+        df_cm = pd.DataFrame(cf_matrix / 4000, index = [i for i in classes],
                      columns = [i for i in classes])
         plt.figure(figsize = (12,7))
         sn.heatmap(df_cm, annot=True)
