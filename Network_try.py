@@ -1,3 +1,4 @@
+from os import write
 import torch
 import torch.nn as nn
 import torchvision
@@ -11,6 +12,8 @@ from way_2_model import Net
 import numpy as np
 import seaborn as sn
 import pandas as pd
+import sys
+from torch.utils.tensorboard import SummaryWriter
 
 def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
     model.train()
@@ -83,14 +86,21 @@ def test_for_confusion_matrix(model, test_loader):
 
 
 if __name__ == "__main__":
-
+    writer_ = SummaryWriter('runs')
     train_line_data_set = LinesDataSet(csv_file="Train_Labels.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor()]))
     test_line_data_set = LinesDataSet(csv_file="Test_Labels.csv", root_dir='data_for_each_person', transform=transforms.Compose([transforms.ToTensor()]))
-    train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
+    train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=10)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=1)
 
-    for k in range(4):
+    # just a simple example
+    example = iter(train_line_data_loader)
+    example_img1, example_img2, target = example.next()
+    
+    example_img1 = example_img1[:,None,:,:].float().cuda()
+    example_img2 = example_img2[:,None,:,:].float().cuda()
+
+    for k in range(1):
         torch.manual_seed(17)
 
         loss_function = nn.MSELoss()
@@ -119,19 +129,24 @@ if __name__ == "__main__":
 
         my_model = my_model.cuda()
         optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
+        writer_.add_graph(my_model.cuda(), (example_img1, example_img2))
 
         # my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
-        epoches = 1
+        epoches = 5
         for i in range(epoches):
             print('epoch number: {}'.format(i + 1))
             train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
+            writer_.add_scalar('train_loss', loss_history_for_ephoces[i], i)
             print('epoch loss: {}'.format(loss_history_for_ephoces[i]))
             torch.save(my_model.state_dict(), 'model.pt')
             print('Testing on Train Data_set...')
             test(my_model, train_line_data_loader_for_test, acc_history = [], train_flag = True)
+            writer_.add_scalar('train_acc', all_acc_train[i], i)
             print('Testing on Test Data_set...')
             test(my_model, test_line_data_loader, acc_history = [], train_flag = False)
+            writer_.add_scalar('test_acc', all_acc_test[i], i)
 
+        print('creating confusion_matrix')
         y_pred = []
         y_true = []
 
@@ -183,3 +198,4 @@ if __name__ == "__main__":
         if k == 3:
             plt.savefig("graphs_for_kenral_size_7_fc_64.png")
         
+        writer_.close()
