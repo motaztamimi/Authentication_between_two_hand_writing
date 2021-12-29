@@ -115,13 +115,13 @@ if __name__ == "__main__":
             my_model.cnn.conv1 = torch.nn.Conv2d(1, 64, 7, stride=2, padding=3, bias=False)
 
         if k == 2:
-            num_features = my_model.cnn.fc.in_features
+            num_features = 512
             my_model.cnn.fc = nn.Sequential(nn.Linear(num_features, 64), nn.ReLU())
             my_model.fc1 = nn.Sequential(nn.Linear(256, 2), nn.Sigmoid())
 
         if k == 3:
             my_model.cnn.conv1 = torch.nn.Conv2d(1, 64, 7, stride=2, padding=3, bias=False)
-            num_features = my_model.cnn.fc.in_features
+            num_features = 512
             my_model.cnn.fc = nn.Sequential(nn.Linear(num_features, 64), nn.ReLU())
             my_model.fc1 = nn.Sequential(nn.Linear(256, 2), nn.Sigmoid())    
 
@@ -132,19 +132,23 @@ if __name__ == "__main__":
         writer_.add_graph(my_model.cuda(), (example_img1, example_img2))
 
         # my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
-        epoches = 5
+        epoches = 30
         for i in range(epoches):
+            
             print('epoch number: {}'.format(i + 1))
             train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
-            writer_.add_scalar('train_loss', loss_history_for_ephoces[i], i)
+            writer_.add_scalar('train_loss_{}'.format(k), loss_history_for_ephoces[i], i)
             print('epoch loss: {}'.format(loss_history_for_ephoces[i]))
-            torch.save(my_model.state_dict(), 'model.pt')
+
+            torch.save(my_model.state_dict(), 'model_{}.pt'.format(k))
+
             print('Testing on Train Data_set...')
             test(my_model, train_line_data_loader_for_test, acc_history = [], train_flag = True)
-            writer_.add_scalar('train_acc', all_acc_train[i], i)
+            writer_.add_scalar('train_acc_{}'.format(k), all_acc_train[i], i)
+
             print('Testing on Test Data_set...')
             test(my_model, test_line_data_loader, acc_history = [], train_flag = False)
-            writer_.add_scalar('test_acc', all_acc_test[i], i)
+            writer_.add_scalar('test_acc_{}'.format(k), all_acc_test[i], i)
 
             print('creating confusion_matrix')
             y_pred = []
@@ -156,7 +160,8 @@ if __name__ == "__main__":
             df_cm = pd.DataFrame(cf_matrix / 4000, index = [i for i in classes],
                         columns = [i for i in classes])
             plt.figure(figsize = (12,7))
-            writer_.add_figure('confusion_matrix', sn.heatmap(df_cm, annot=True), i)
+
+            writer_.add_figure('confusion_matrix_{}'.format(k), sn.heatmap(df_cm, annot=True), i)
 
         if k == 0:
             plt.savefig('matrics_for_kenral_size_3.png')
