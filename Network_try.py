@@ -90,7 +90,7 @@ if __name__ == "__main__":
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=1)
 
-    for k in range(2):
+    for k in range(4):
         torch.manual_seed(17)
 
         loss_function = nn.MSELoss()
@@ -103,7 +103,20 @@ if __name__ == "__main__":
         
         if k == 1:
             my_model.cnn.conv1 = torch.nn.Conv2d(1, 64, 7, stride=2, padding=3, bias=False)
-        
+
+        if k == 2:
+            num_features = my_model.cnn.fc.in_features
+            my_model.cnn.fc = nn.Sequential(nn.Linear(num_features, 64), nn.ReLU())
+            my_model.fc1 = nn.Sequential(nn.Linear(256, 2), nn.Sigmoid())
+
+        if k == 3:
+            my_model.cnn.conv1 = torch.nn.Conv2d(1, 64, 7, stride=2, padding=3, bias=False)
+            num_features = my_model.cnn.fc.in_features
+            my_model.cnn.fc = nn.Sequential(nn.Linear(num_features, 64), nn.ReLU())
+            my_model.fc1 = nn.Sequential(nn.Linear(256, 2), nn.Sigmoid())    
+
+
+
         my_model = my_model.cuda()
         optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
 
@@ -130,11 +143,17 @@ if __name__ == "__main__":
         plt.figure(figsize = (12,7))
         sn.heatmap(df_cm, annot=True)
 
-        if k == 1:
-            plt.savefig('matrics_for_kenral_size_7.png')
-        else:
+        if k == 0:
             plt.savefig('matrics_for_kenral_size_3.png')
 
+        if k == 1:
+            plt.savefig('matrics_for_kenral_size_7.png')
+
+        if k == 2:
+            plt.savefig('matrics_for_kenral_size_3_fc_64.png')
+        
+        if k == 3:
+            plt.savefig('matrics_for_kenral_size_7_fc_64.png')
 
         plt.subplot(2,2,1)
         plt.plot(loss_history_for_ephoces)
@@ -152,7 +171,15 @@ if __name__ == "__main__":
         plt.plot(all_acc_test)
         plt.title('test acc')
 
+        if k == 0:
+            plt.savefig("graphs_for_kenral_size_3.png")
+
         if k == 1:
-            plt.savefig("graphs_for_kenral_size_3.png", dpi=100., pad_inches=0.5)
-        else:
-            plt.savefig("graphs_for_kenral_size_3.png", dpi=100., pad_inches=0.5)
+            plt.savefig("graphs_for_kenral_size_3.png")
+        
+        if k == 2:
+            plt.savefig("graphs_for_kenral_size_3_fc_64.png")
+        
+        if k == 3:
+            plt.savefig("graphs_for_kenral_size_7_fc_64.png")
+        
