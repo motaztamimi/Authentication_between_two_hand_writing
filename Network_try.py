@@ -100,7 +100,7 @@ if __name__ == "__main__":
     example_img1 = example_img1[:,None,:,:].float().cuda()
     example_img2 = example_img2[:,None,:,:].float().cuda()
 
-    for k in range(1):
+    for k in range(4):
         torch.manual_seed(17)
 
         loss_function = nn.MSELoss()
@@ -134,7 +134,7 @@ if __name__ == "__main__":
         # my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
         epoches = 30
         for i in range(epoches):
-            
+
             print('epoch number: {}'.format(i + 1))
             train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
             writer_.add_scalar('train_loss_{}'.format(k), loss_history_for_ephoces[i], i)
