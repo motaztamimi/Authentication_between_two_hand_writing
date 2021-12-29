@@ -119,7 +119,7 @@ if __name__ == "__main__":
     my_model = Net().cuda()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
 
-    my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
+    # my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
     epoches = 10
     for i in range(epoches):
         train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
