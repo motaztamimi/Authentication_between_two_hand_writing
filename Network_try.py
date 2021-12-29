@@ -99,11 +99,12 @@ if __name__ == "__main__":
         loss_history_for_ephoces = []
         all_acc_test = []
         all_acc_train = []
-        my_model = Net().cuda()
+        my_model = Net()
         
         if k == 1:
             my_model.cnn.conv1 = torch.nn.Conv2d(1, 64, 7, stride=2, padding=3, bias=False)
         
+        my_model = my_model.cuda()
         optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
 
         # my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
@@ -124,7 +125,7 @@ if __name__ == "__main__":
         test_for_confusion_matrix(my_model, test_line_data_loader)
         cf_matrix = confusion_matrix(y_true, y_pred)
         classes = ('0', '1')
-        df_cm = pd.DataFrame(cf_matrix/np.sum(cf_matrix) *10, index = [i for i in classes],
+        df_cm = pd.DataFrame(cf_matrix, index = [i for i in classes],
                      columns = [i for i in classes])
         plt.figure(figsize = (12,7))
         sn.heatmap(df_cm, annot=True)
