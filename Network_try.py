@@ -6,30 +6,11 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
-
 from data_set import LinesDataSet
-
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.cnn = torchvision.models.resnet18(pretrained = False)
-        self.cnn.conv1 = torch.nn.Conv2d(1, 64, 3,bias=False)
-        num_features = self.cnn.fc.in_features
-        self.cnn.fc = nn.Sequential(nn.Linear(num_features, 200), nn.ReLU())
-        self.fc1 = nn.Sequential(nn.Linear(800, 2), nn.Sigmoid())
-
-    def forward_once(self, x):
-        output = self.cnn(x)
-        return output
-    
-    def forward(self, input1, input2):
-        output1 = self.forward_once(input1)
-        output2 = self.forward_once(input2)
-        h_ = output1 * output2
-        dist_ = torch.pow((output1 - output2), 2)
-        V_ = torch.cat((output1, output2, dist_, h_), dim=1)
-        output = self.fc1(V_)
-        return output
+from way_2_model import Net
+import numpy as np
+import seaborn as sn
+import pandas as pd
 
 def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
     model.train()
@@ -55,7 +36,6 @@ def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
                 new_label[i][1] = 0.
 
         loss = loss_function(output, new_label)
-        print("epoch Number: {} bathc_loss: {}".format(epoch, loss.item()))
         loss_history.append(loss.cpu().item())
         batches_loss.append(loss.cpu().item())
         loss.backward()
@@ -103,54 +83,75 @@ def test_for_confusion_matrix(model, test_loader):
 
 
 if __name__ == "__main__":
-    torch.manual_seed(17)
+
     train_line_data_set = LinesDataSet(csv_file="Train_Labels.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor()]))
     test_line_data_set = LinesDataSet(csv_file="Test_Labels.csv", root_dir='data_for_each_person', transform=transforms.Compose([transforms.ToTensor()]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=1)
 
-    loss_function = nn.MSELoss()
+    for k in range(2):
+        torch.manual_seed(17)
 
-    loss_history = []
-    loss_history_for_ephoces = []
-    all_acc_test = []
-    all_acc_train = []
-    my_model = Net().cuda()
-    optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
+        loss_function = nn.MSELoss()
 
-    # my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
-    epoches = 10
-    for i in range(epoches):
-        train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
-        torch.save(my_model.state_dict(), 'model.pt')
-        print('Testing on Train Data_set...')
-        test(my_model, train_line_data_loader_for_test, acc_history = [], train_flag = True)
-        print('Testing on Test Data_set...')
-        test(my_model, test_line_data_loader, acc_history = [], train_flag = False)
+        loss_history = []
+        loss_history_for_ephoces = []
+        all_acc_test = []
+        all_acc_train = []
+        my_model = Net().cuda()
+        
+        if k == 1:
+            my_model.cnn.conv1 = torch.nn.Conv2d(1, 64, 7, stride=2, padding=3, bias=False)
+        
+        optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
 
-    y_pred = []
-    y_true = []
+        # my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
+        epoches = 1
+        for i in range(epoches):
+            print('epoch number: {}'.format(i + 1))
+            train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
+            print('epoch loss: {}'.format(loss_history_for_ephoces[i]))
+            torch.save(my_model.state_dict(), 'model.pt')
+            print('Testing on Train Data_set...')
+            test(my_model, train_line_data_loader_for_test, acc_history = [], train_flag = True)
+            print('Testing on Test Data_set...')
+            test(my_model, test_line_data_loader, acc_history = [], train_flag = False)
 
-    test_for_confusion_matrix(my_model, test_line_data_loader)
-    cf_matrix = confusion_matrix(y_true, y_pred)
-    print(cf_matrix)
+        y_pred = []
+        y_true = []
 
-    plt.subplot(2,2,1)
-    plt.plot(loss_history_for_ephoces)
-  
-    plt.title('train epoches loss')
-    plt.subplot(2,2,2)
-    plt.plot(loss_history)
+        test_for_confusion_matrix(my_model, test_line_data_loader)
+        cf_matrix = confusion_matrix(y_true, y_pred)
+        classes = ('0', '1')
+        df_cm = pd.DataFrame(cf_matrix/np.sum(cf_matrix) *10, index = [i for i in classes],
+                     columns = [i for i in classes])
+        plt.figure(figsize = (12,7))
+        sn.heatmap(df_cm, annot=True)
 
-    plt.title('train loss')
-    plt.subplot(2,2,3)
-    plt.plot(all_acc_train)
- 
-    plt.title('train acc')
-    plt.subplot(2,2,4)
-    plt.plot(all_acc_test)
-    plt.title('test acc')
-    plt.savefig("model result.jpg")
-    plt.show()
+        if k == 1:
+            plt.savefig('matrics_for_kenral_size_7.png')
+        else:
+            plt.savefig('matrics_for_kenral_size_3.png')
 
+
+        plt.subplot(2,2,1)
+        plt.plot(loss_history_for_ephoces)
+    
+        plt.title('train epoches loss')
+        plt.subplot(2,2,2)
+        plt.plot(loss_history)
+
+        plt.title('train loss')
+        plt.subplot(2,2,3)
+        plt.plot(all_acc_train)
+    
+        plt.title('train acc')
+        plt.subplot(2,2,4)
+        plt.plot(all_acc_test)
+        plt.title('test acc')
+
+        if k == 1:
+            plt.savefig("graphs_for_kenral_size_3.png", dpi=100., pad_inches=0.5)
+        else:
+            plt.savefig("graphs_for_kenral_size_3.png", dpi=100., pad_inches=0.5)
