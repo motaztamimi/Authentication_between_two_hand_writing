@@ -146,17 +146,17 @@ if __name__ == "__main__":
             test(my_model, test_line_data_loader, acc_history = [], train_flag = False)
             writer_.add_scalar('test_acc', all_acc_test[i], i)
 
-        print('creating confusion_matrix')
-        y_pred = []
-        y_true = []
+            print('creating confusion_matrix')
+            y_pred = []
+            y_true = []
 
-        test_for_confusion_matrix(my_model, test_line_data_loader)
-        cf_matrix = confusion_matrix(y_true, y_pred)
-        classes = ('0', '1')
-        df_cm = pd.DataFrame(cf_matrix / 4000, index = [i for i in classes],
-                     columns = [i for i in classes])
-        plt.figure(figsize = (12,7))
-        sn.heatmap(df_cm, annot=True)
+            test_for_confusion_matrix(my_model, test_line_data_loader)
+            cf_matrix = confusion_matrix(y_true, y_pred)
+            classes = ('0', '1')
+            df_cm = pd.DataFrame(cf_matrix / 4000, index = [i for i in classes],
+                        columns = [i for i in classes])
+            plt.figure(figsize = (12,7))
+            writer_.add_figure('confusion_matrix', sn.heatmap(df_cm, annot=True), i)
 
         if k == 0:
             plt.savefig('matrics_for_kenral_size_3.png')
