@@ -134,6 +134,8 @@ dmypy.json
 #jpeg files
 *.jpeg
 
+*.png
+*.jpg
 #model
 
 *.pt
