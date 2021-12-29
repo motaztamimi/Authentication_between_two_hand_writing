@@ -5,6 +5,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
+from sklearn.metrics import confusion_matrix
 
 from data_set import LinesDataSet
 
@@ -84,8 +85,20 @@ def test ( model,test_loader, acc_history, train_flag):
     else:
         all_acc_test.append(sum(acc_history) / len(acc_history))
             
-
-
+def test_for_confusion_matrix(model, test_loader):
+    model.eval()
+    for _ , data in enumerate(test_loader):
+        image1, image2, label = data
+        image1 = image1.float().cuda()
+        image2 = image2.float().cuda()
+        image1 = image1[:,None,:,:]
+        image2 = image2[:,None,:,:]
+        label = label.cuda()
+        with torch.no_grad():
+            output = model(image1, image2)
+            predeict_= torch.argmax(output)
+            y_pred.append(predeict_.cpu().item())
+            y_true.append(label.cpu().item())
 
 
 
@@ -106,8 +119,8 @@ if __name__ == "__main__":
     my_model = Net().cuda()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
 
-    # my_model.load_state_dict(torch.load('model.pt', map_location='cuda:0'))
-    epoches = 30
+    my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
+    epoches = 10
     for i in range(epoches):
         train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
         torch.save(my_model.state_dict(), 'model.pt')
@@ -116,6 +129,12 @@ if __name__ == "__main__":
         print('Testing on Test Data_set...')
         test(my_model, test_line_data_loader, acc_history = [], train_flag = False)
 
+    y_pred = []
+    y_true = []
+
+    test_for_confusion_matrix(my_model, test_line_data_loader)
+    cf_matrix = confusion_matrix(y_true, y_pred)
+    print(cf_matrix)
 
     plt.subplot(2,2,1)
     plt.plot(loss_history_for_ephoces)
