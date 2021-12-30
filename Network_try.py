@@ -161,7 +161,7 @@ if __name__ == "__main__":
                         columns = [i for i in classes])
             plt.figure(figsize = (12,7))
 
-            writer_.add_figure('confusion_matrix_{}'.format(k), sn.heatmap(df_cm, annot=True).get_figure(), i)
+            writer_.add_figure('confusion_matrix_{}_with_reg'.format(k), sn.heatmap(df_cm, annot=True).get_figure(), i)
 
         if k == 0:
             plt.savefig('matrics_for_kenral_size_3.png')
