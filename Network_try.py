@@ -86,10 +86,10 @@ def test_for_confusion_matrix(model, test_loader):
 
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs')
+    writer_ = SummaryWriter('runs/with_reg')
     train_line_data_set = LinesDataSet(csv_file="Train_Labels.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor()]))
     test_line_data_set = LinesDataSet(csv_file="Test_Labels.csv", root_dir='data_for_each_person', transform=transforms.Compose([transforms.ToTensor()]))
-    train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=10)
+    train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=1)
 
@@ -161,7 +161,7 @@ if __name__ == "__main__":
                         columns = [i for i in classes])
             plt.figure(figsize = (12,7))
 
-            writer_.add_figure('confusion_matrix_{}'.format(k), sn.heatmap(df_cm, annot=True), i)
+            writer_.add_figure('confusion_matrix_{}'.format(k), sn.heatmap(df_cm, annot=True).get_figure(), i)
 
         if k == 0:
             plt.savefig('matrics_for_kenral_size_3.png')
