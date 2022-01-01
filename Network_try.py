@@ -88,7 +88,7 @@ def test_for_confusion_matrix(model, test_loader):
 
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs/with_reg')
+    writer_ = SummaryWriter('runs/with_reg_with_drop_out')
     train_line_data_set = LinesDataSet(csv_file="Train_Labels.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor()]))
     test_line_data_set = LinesDataSet(csv_file="Test_Labels.csv", root_dir='data_for_each_person', transform=transforms.Compose([transforms.ToTensor()]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
