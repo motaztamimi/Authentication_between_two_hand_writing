@@ -57,6 +57,8 @@ def test ( model,test_loader, acc_history, train_flag):
         with torch.no_grad():
             output = model(image1, image2)
             predeict_= torch.argmax(output)
+            y_pred.append(predeict_.cpu().item())
+            y_true.append(label.cpu().item())
             if predeict_.item() == label.item():
                 acc_history.append(1)
             else:
@@ -142,19 +144,24 @@ if __name__ == "__main__":
 
             torch.save(my_model.state_dict(), 'model_{}.pt'.format(k))
 
+            y_pred = []
+            y_true = []
+
             print('Testing on Train Data_set...')
             test(my_model, train_line_data_loader_for_test, acc_history = [], train_flag = True)
             writer_.add_scalar('train_acc_{}'.format(k), all_acc_train[i], i)
+
+            y_pred = []
+            y_true = []
 
             print('Testing on Test Data_set...')
             test(my_model, test_line_data_loader, acc_history = [], train_flag = False)
             writer_.add_scalar('test_acc_{}'.format(k), all_acc_test[i], i)
 
             print('creating confusion_matrix')
-            y_pred = []
-            y_true = []
 
-            test_for_confusion_matrix(my_model, test_line_data_loader)
+
+            # test_for_confusion_matrix(my_model, test_line_data_loader)
             cf_matrix = confusion_matrix(y_true, y_pred)
             classes = ('0', '1')
             df_cm = pd.DataFrame(cf_matrix / 4000, index = [i for i in classes],
