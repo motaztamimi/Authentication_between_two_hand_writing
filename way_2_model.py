@@ -9,7 +9,7 @@ class Net(nn.Module):
         self.cnn = torchvision.models.resnet18(pretrained = False)
         self.cnn.conv1 = torch.nn.Conv2d(1, 64, 3, bias=False)
         num_features = self.cnn.fc.in_features
-        self.cnn.fc = nn.Sequential(nn.Linear(num_features, 200), nn.ReLU())
+        self.cnn.fc = nn.Sequential(nn.Dropout(p=0.5),nn.Linear(num_features, 200), nn.ReLU())
         self.fc1 = nn.Sequential(nn.Linear(800, 2), nn.Sigmoid())
 
     def forward_once(self, x):
