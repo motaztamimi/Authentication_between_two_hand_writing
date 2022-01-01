@@ -170,44 +170,4 @@ if __name__ == "__main__":
 
             writer_.add_figure('confusion_matrix_{}_with_reg'.format(k), sn.heatmap(df_cm, annot=True).get_figure(), i)
 
-        if k == 0:
-            plt.savefig('matrics_for_kenral_size_3.png')
-
-        if k == 1:
-            plt.savefig('matrics_for_kenral_size_7.png')
-
-        if k == 2:
-            plt.savefig('matrics_for_kenral_size_3_fc_64.png')
-        
-        if k == 3:
-            plt.savefig('matrics_for_kenral_size_7_fc_64.png')
-
-        plt.subplot(2,2,1)
-        plt.plot(loss_history_for_ephoces)
-    
-        plt.title('train epoches loss')
-        plt.subplot(2,2,2)
-        plt.plot(loss_history)
-
-        plt.title('train loss')
-        plt.subplot(2,2,3)
-        plt.plot(all_acc_train)
-    
-        plt.title('train acc')
-        plt.subplot(2,2,4)
-        plt.plot(all_acc_test)
-        plt.title('test acc')
-
-        if k == 0:
-            plt.savefig("graphs_for_kenral_size_3.png")
-
-        if k == 1:
-            plt.savefig("graphs_for_kenral_size_7.png")
-        
-        if k == 2:
-            plt.savefig("graphs_for_kenral_size_3_fc_64.png")
-        
-        if k == 3:
-            plt.savefig("graphs_for_kenral_size_7_fc_64.png")
-        
         writer_.close()
