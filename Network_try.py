@@ -1,4 +1,3 @@
-from os import write
 import torch
 import torch.nn as nn
 import torchvision

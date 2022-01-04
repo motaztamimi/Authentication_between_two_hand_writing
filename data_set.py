@@ -43,6 +43,6 @@ class LinesDataSet(Dataset):
         return img0, img1, torch.from_numpy(np.array([int(label)],dtype=np.float32))
 
 
-line_dataSet = LinesDataSet(csv_file='Train_Labels.csv',
-                            root_dir='data_for_each_person',transform=10)
+# line_dataSet = LinesDataSet(csv_file='Train_Labels.csv',
+#                             root_dir='data_for_each_person',transform=10)
 
