@@ -6,6 +6,143 @@ import os
 import numpy as np
 import pandas as pd
 import random
+import shutil
+
+
+
+def new_func(filename = "match_labels.csv"):
+    excel_file=[]
+    csv_file = pd.DataFrame(excel_file)
+    arr=[]
+    arr_not_to_match = []
+    for i in range(15):
+        person1 , person2= chose_writer(array=arr)
+        print(person1)
+        arr.append(person1);    
+        copy_two_writer_to_another_directory(writer1=person1, writer2=person2)
+        a_b = random.randint(0,1)
+        typee="a"
+        if a_b == 1:
+            typee="b" 
+        match_csv = find_match_pairs_two_writer(arr_to_ignore = arr_not_to_match ,person=person1,kind=typee)
+        mis_match_csv = find_miss_match_pairs_two_writer(person1=person1, person2=person2,kind=typee)
+        arr_not_to_match.append(person1)
+        csv_file = pd.concat([csv_file,match_csv])
+        csv_file = pd.concat([csv_file,mis_match_csv])
+        shutil.rmtree("data_for_two_person")
+    csv_file.to_csv(filename,index=False, sep=',', header=0)
+
+
+def chose_writer(array):
+
+    person1=random.randint(65,80)
+    person2=random.randint(65,80)
+    while person1 in array:
+        person1=random.randint(65,80)
+
+    while person1 == person2:
+        person2 = random.randint(65,80)    
+    return person1 , person2
+
+
+def copy_two_writer_to_another_directory(path='data_for_each_person', writer1 = 1, writer2 = 2):
+    if os.path.exists(path):
+        dir_writer1= "person_{}".format(writer1); 
+        dir_writer2= "person_{}".format(writer2);
+        files_writer1_path = path + '/' + dir_writer1
+        files_writer2_path = path + '/' + dir_writer2
+
+        new_path = 'data_for_two_person/' + dir_writer1  
+        shutil.copytree(files_writer1_path, new_path)
+        new_path1 = 'data_for_two_person/' + dir_writer2 
+        shutil.copytree(files_writer2_path, new_path1)
+
+
+
+def find_match_pairs_two_writer(path = "data_for_two_person" , filename = "match_labels.csv" , arr_to_ignore = [] ,person =1,kind = "a"):
+    if os.path.exists(path):
+        print('Creating all possible pairs of lines that creat a Match and store the labels in csv file...')
+        dir_name = path
+        genuin_data = []
+        dirs = os.listdir(dir_name)
+        dirs= sorted(dirs,key= Sorting_Dir)
+
+        for _dir in dirs:
+            if _dir != '.DS_Store':
+                files = os.listdir(dir_name + '/' + _dir)
+                file =[]
+                writer_num = _dir.split("_")[1]
+                if int(writer_num) == person  and int(writer_num) not in arr_to_ignore:
+                    for i in range(0,5):
+                        row=random.randint(1,30)
+                        file_name = "p{}_{}_L_{}.jpeg".format(writer_num, kind, row)
+                        file_to_search= dir_name + '/' + _dir + '/' + file_name
+                        while(os.path.exists(file_to_search) == False):
+                            row=random.randint(1,30)
+                            file_name = "p{}_{}_L_{}.jpeg".format(writer_num, kind, row)
+                            file_to_search= dir_name + '/' + _dir + '/' + file_name
+                        file.append(file_name)
+                    for indx, img1 in enumerate(file):
+                        for img2 in file[indx:]:
+                            to_add = []
+                            if img1 != img2:
+                                to_add.append(_dir + '/' + img1)
+                                to_add.append(_dir + '/' + img2)
+                                to_add.append('0')
+                                genuin_data.append(to_add)
+        csv_file = pd.DataFrame(genuin_data)
+        csv_file=csv_file.sample(frac=1)
+        csv_file= csv_file[0:8]
+        print('Done.')
+        return csv_file
+
+def find_miss_match_pairs_two_writer(path='data_for_two_person',person1 = 1, person2 = 2, kind = "a" ):
+    
+    if os.path.exists(path):
+
+        print('Creating all pairs of lines that creat a Miss Match and store the labels in csv file...')
+        diff_data = []
+        dir_name = path
+        dirs = os.listdir(dir_name)
+        dirs= sorted(dirs,key= Sorting_Dir)
+        person1_dir = "person_{}".format(person1)
+        person2_dir = "person_{}".format(person2)
+        file_person1 = []
+        file_person2 = []
+        for i in range (0 ,5):
+                row1=random.randint(1,30)
+                row2=random.randint(1,30)
+
+                file_name = "p{}_{}_L_{}.jpeg".format(person1,kind, row1)
+                file_name1 = "p{}_{}_L_{}.jpeg".format(person2,kind, row2)
+                file_to_search = path +'/'+ person1_dir + '/' + file_name
+                file_to_search1 = path +'/'+ person2_dir + '/' + file_name1
+            
+                while(os.path.exists(file_to_search) == False):
+                    print(file_to_search)
+                    row1=random.randint(1,30)
+                    file_name = "p{}_{}_L_{}.jpeg".format(person1,kind, row1)
+                    file_to_search = path +'/'+ person1_dir + '/' + file_name
+                while(os.path.exists(file_to_search1) == False):
+                    row2=random.randint(1,30)
+                    file_name1 = "p{}_{}_L_{}.jpeg".format(person2,kind, row2)
+                    file_to_search1 = path +'/'+ person2_dir + '/' + file_name1
+                file_person1.append(file_name)
+                file_person2.append(file_name1)
+        for img1 in file_person1:
+            for img2 in file_person2:
+                to_add = []
+                to_add.append(person1_dir + '/' + img1)
+                to_add.append(person2_dir + '/' + img2)
+                to_add.append('1')
+                diff_data.append(to_add)
+
+        csv_file = pd.DataFrame(diff_data)
+        csv_file = csv_file.sample(frac=1)
+        csv_file = csv_file[0:8] 
+        print('Done.')
+        return csv_file
+
 
 
 def from_two_pages_to_jpeg(data_path):
@@ -184,15 +321,16 @@ def resize_image():
 
 
 if __name__ == '__main__':
-    # print('Starting the preparing phase...')
+    print('Starting the preparing phase...')
     # from_two_pages_to_jpeg("C:/Users/FinalProject/Desktop/final_project/data")
     # creating_lines_for_each_person()
     # Delete_White_Lines()
-    find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
-    find_match_pairs(start=30,end=39,filename="Test_match_labels.csv")
-    find_miss_match_pairs(start=0,end=30,filename="Train_miss_match_labels.csv")
-    find_miss_match_pairs(start=30,end=39,filename="Test_miss_match_labels.csv")
-    create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 5000, "Train_Labels.csv")
-    create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 2000, "Test_Labels.csv")
-    print('Done. Now you can use the data')
-    resize_image()
+    # find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
+    # find_match_pairs(start=30,end=39,filename="Test_match_labels.csv")
+    # find_miss_match_pairs(start=0,end=30,filename="Train_miss_match_labels.csv")
+    # find_miss_match_pairs(start=30,end=39,filename="Test_miss_match_labels.csv")
+    # create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 5000, "Train_Labels.csv")
+    # create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 2000, "Test_Labels.csv")
+    # print('Done. Now you can use the data')
+    # resize_image()
+    new_func('test_labels_try.csv')
