@@ -32,7 +32,6 @@ def new_func(filename = "match_labels.csv"):
         shutil.rmtree("data_for_two_person")
     csv_file.to_csv(filename,index=False, sep=',', header=0)
 
-
 def chose_writer(array):
 
     person1=random.randint(65,80)
@@ -43,7 +42,6 @@ def chose_writer(array):
     while person1 == person2:
         person2 = random.randint(65,80)    
     return person1 , person2
-
 
 def copy_two_writer_to_another_directory(path='data_for_each_person', writer1 = 1, writer2 = 2):
     if os.path.exists(path):
@@ -56,8 +54,6 @@ def copy_two_writer_to_another_directory(path='data_for_each_person', writer1 = 
         shutil.copytree(files_writer1_path, new_path)
         new_path1 = 'data_for_two_person/' + dir_writer2 
         shutil.copytree(files_writer2_path, new_path1)
-
-
 
 def find_match_pairs_two_writer(path = "data_for_two_person" , filename = "match_labels.csv" , arr_to_ignore = [] ,person =1,kind = "a"):
     if os.path.exists(path):
@@ -143,8 +139,6 @@ def find_miss_match_pairs_two_writer(path='data_for_two_person',person1 = 1, per
         print('Done.')
         return csv_file
 
-
-
 def from_two_pages_to_jpeg(data_path):
 
     if not os.path.exists('data1_as_one_page'):
@@ -152,7 +146,6 @@ def from_two_pages_to_jpeg(data_path):
         print('change the file type from 2 pages of type tiff to one jpeg image...')
         prepare_doc.prepare_doc_test(data_path)
     print('Done.')
-
 
 def creating_lines_for_each_person(path='data1_as_one_page'):
 
@@ -182,7 +175,6 @@ def creating_lines_for_each_person(path='data1_as_one_page'):
                                                         dir_name, name))
 
         print('Done.')
-
 
 def Delete_White_Lines(path='data_for_each_person'):
     # check if the path exist
@@ -256,7 +248,6 @@ def find_match_pairs(path='data_for_each_person',start=0,end=39,filename='match_
 
         print('Done.')
 
-
 def find_miss_match_pairs(path='data_for_each_person',start= 0,end= 39,filename='miss_match_labels.csv'):
 
     if os.path.exists(path):
@@ -290,7 +281,6 @@ def find_miss_match_pairs(path='data_for_each_person',start= 0,end= 39,filename=
 
         print('Done.')
 
-
 def create_label_file(file_1, file_2, num,filename):
     match_pairs = pd.read_csv(file_1, header= None, sep= ',',nrows= num )
     miss_match_pairs = pd.read_csv(file_2,header= None ,sep= ',',nrows= num )
@@ -312,20 +302,24 @@ def resize_image():
                 img = img.resize((1760,70))
                 img.save(imgpath)
 
-
- 
-
-
-
-
+def rename_newData_files(path, start_number):
+    files = os.listdir(path)
+    files.sort(key=prepare_doc.bigger_than)
+    flag=0
+    for file in files:
+        new_path= path+"/"+str(start_number)+"-"+file.split("-")[1]
+        os.rename(path+"/"+file,new_path)
+        flag+=1
+        if flag == 2 : 
+            flag=0
+            start_number+=1
 
 
 if __name__ == '__main__':
     print('Starting the preparing phase...')
-    # from_two_pages_to_jpeg("C:/Users/FinalProject/Desktop/final_project/data")
-    creating_lines_for_each_person()
-    Delete_White_Lines()
-    
+    #from_two_pages_to_jpeg("C:/Users/97258/Desktop/wave2 data")
+    #creating_lines_for_each_person()
+    #Delete_White_Lines()
     # find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
     # find_match_pairs(start=30,end=39,filename="Test_match_labels.csv")
     # find_miss_match_pairs(start=0,end=30,filename="Train_miss_match_labels.csv")
@@ -334,4 +328,4 @@ if __name__ == '__main__':
     # create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 2000, "Test_Labels.csv")
     # print('Done. Now you can use the data')
     # resize_image()
-    #new_func('test_labels_try.csv')
+    # new_func('test_labels_try.csv')
