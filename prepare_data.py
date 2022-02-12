@@ -55,14 +55,15 @@ def copy_two_writer_to_another_directory(path='data_for_each_person', writer1 = 
         new_path1 = 'data_for_two_person/' + dir_writer2 
         shutil.copytree(files_writer2_path, new_path1)
 
+
 def find_match_pairs_two_writer(path = "data_for_two_person" , filename = "match_labels.csv" , arr_to_ignore = [] ,person =1,kind = "a"):
+    
     if os.path.exists(path):
         print('Creating all possible pairs of lines that creat a Match and store the labels in csv file...')
         dir_name = path
         genuin_data = []
         dirs = os.listdir(dir_name)
         dirs= sorted(dirs,key= Sorting_Dir)
-
         for _dir in dirs:
             if _dir != '.DS_Store':
                 files = os.listdir(dir_name + '/' + _dir)
@@ -139,15 +140,15 @@ def find_miss_match_pairs_two_writer(path='data_for_two_person',person1 = 1, per
         print('Done.')
         return csv_file
 
-def from_two_pages_to_jpeg(data_path):
+def from_two_pages_to_jpeg(data_path,folder="data1_as_one_page"):
 
-    if not os.path.exists('data1_as_one_page'):
-        os.mkdir('data1_as_one_page')
+    if not os.path.exists(folder):
+        os.mkdir(folder)
         print('change the file type from 2 pages of type tiff to one jpeg image...')
-        prepare_doc.prepare_doc_test(data_path)
+        prepare_doc.prepare_doc_test(data_path,foleder=folder)
     print('Done.')
 
-def creating_lines_for_each_person(path='data1_as_one_page'):
+def creating_lines_for_each_person(path='data1_as_one_page',path_1="data_for_each_person"):
 
     if os.path.exists(path):
 
@@ -155,7 +156,6 @@ def creating_lines_for_each_person(path='data1_as_one_page'):
 
         files = os.listdir(path)
 
-        path_1 = 'data_for_each_person'
         if not os.path.exists(path_1):
             os.mkdir(path_1)
         for file in files:
@@ -164,7 +164,7 @@ def creating_lines_for_each_person(path='data1_as_one_page'):
                 dir_name = 'person_{}'.format(number)
                 if not os.path.exists(os.path.join(path_1, dir_name)):
                     os.mkdir(path_1 + '/' + dir_name)
-                img = cv2.imread('data1_as_one_page' + '/' + file, 0)
+                img = cv2.imread(path + '/' + file, 0)
                 lines = detection_function.detect_lines(img)
                 for indx, line in enumerate(lines):
                     to_save = Image.fromarray(line)
@@ -288,10 +288,9 @@ def create_label_file(file_1, file_2, num,filename):
     labels= labels.sample(frac=1)
     labels.to_csv(filename, index=False, sep=',', header=0)
 
-def resize_image():
-     if os.path.exists("data_for_each_person"):
+def resize_image(dir_name="data_for_each_person"):
+     if os.path.exists(dir_name):
         print('Creating all possible pairs of lines that creat a Match and store the labels in csv file...')
-     dir_name = "data_for_each_person"
      dirs = os.listdir(dir_name)
      for _dir in dirs:
          if _dir !='.DS_Store':

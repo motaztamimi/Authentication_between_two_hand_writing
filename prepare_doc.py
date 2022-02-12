@@ -37,7 +37,7 @@ def get_concat_vertical(im1, im2):
     return dst
 
 
-def prepare_doc_test(path):
+def prepare_doc_test(path,foleder = "data1_as_one_page"):
     files = os.listdir(path)
     files.sort(key=bigger_than)
     file_number = 1
@@ -60,14 +60,14 @@ def prepare_doc_test(path):
         # Create target Directory if don't exist
         if file_number == 1:
             concat_1 = get_concat_vertical(page1, page2)
-            path_1 = 'data1_as_one_page/{}.jpeg'.format(file.split('.')[0])
+            path_1 = '{}/{}.jpeg'.format(foleder, file.split('.')[0])
             concat_1.save(
-                'data1_as_one_page/{}.jpeg'.format(file.split('.')[0]))
+                '{}/{}.jpeg'.format(foleder,file.split('.')[0]))
             file_number = 2
         else:
             concat_2 = get_concat_vertical(page1, page2)
-            path_2 = 'data1_as_one_page/{}.jpeg'.format(file.split('.')[0])
+            path_2 = '{}/{}.jpeg'.format(foleder,file.split('.')[0])
             concat_2.save(
-                'data1_as_one_page/{}.jpeg'.format(file.split('.')[0]))
+                '{}/{}.jpeg'.format(foleder,file.split('.')[0]))
 
     return path_1, path_2
