@@ -16,8 +16,12 @@ from torch.utils.data import DataLoader
 Proc_step=0
 def step_excel():
     return Proc_step    
-def test ( model,test_loader, acc_history, train_flag, acc_history_std):
+def test ( model,test_loader, acc_history, train_flag, acc_history_std , acc_history_median):
     model.eval()
+    count =0
+    acc_nean = []
+    acc_std =[]
+    acc_median =[]
     for indx, data in enumerate(test_loader):
 
         image1, image2, label = data
@@ -30,11 +34,24 @@ def test ( model,test_loader, acc_history, train_flag, acc_history_std):
             output = model(image1, image2)
             resultt= mean(output[:,0].cpu().numpy())[0]
             resultstd = std(output[:,0].cpu().numpy())
+            result_median = median(output[:,0].cpu().numpy())
             _, predeict_= torch.max(output, dim=1, keepdim=False)
-
-        acc_history.append(resultt)
-        acc_history_std.append(resultstd)
-    return acc_history , acc_history_std
+            acc_nean.append(resultt)
+            acc_std.append(resultstd)
+            acc_median.append(result_median)
+            count+=1
+        if count == 3:
+            r = sum(acc_nean) /3  
+            r_std =sum(acc_std)/3  
+            r_median = sum(acc_median)/3    
+            acc_history.append(r)
+            acc_history_std.append(r_std)
+            acc_history_median.append(r_median)
+            count=0
+            acc_nean = []
+            acc_std =[]
+            acc_median = []
+    return acc_history , acc_history_std, acc_history_median
 
 def creating_lines_for_each_file(path='data1_as_one_page',path_1="data_for_each_person"):
     
@@ -74,7 +91,7 @@ def find_miss_match_pairs_two_writer(path='Motaz_for_each_Person',person1 = 1, p
         person2_dir = "person_{}".format(person2)
         file_person1 = []
         file_person2 = []
-        for i in range (0 ,5):
+        for i in range (0 ,12):
                 row1=random.randint(1,30)
                 row2=random.randint(1,30)
                 file_name  = "p{}_L_{}.jpeg".format(person1,row1)
@@ -101,7 +118,7 @@ def find_miss_match_pairs_two_writer(path='Motaz_for_each_Person',person1 = 1, p
         csv_file = pd.DataFrame(diff_data)
         csv_file.to_csv("filename1.csv",index=False, sep=',', header=0)
         csv_file = csv_file.sample(frac=1)
-        csv_file = csv_file[0:10] 
+        csv_file = csv_file[0:30] 
         print('Done.')
         return csv_file
 
@@ -118,7 +135,7 @@ def find_match_pairs_two_writer(path = "Motaz_for_each_Person" , person =1, flag
                 file =[]
                 if _dir == dirs_to_search:
                     linee_number = []
-                    for i in range(0,7):
+                    for i in range(0,12):
                         row = random.randint(1,30)
                         file_name = "p{}_L_{}.jpeg".format(person, row)
                         file_to_search = dir_name + '/' + _dir + '/' + file_name
@@ -139,9 +156,9 @@ def find_match_pairs_two_writer(path = "Motaz_for_each_Person" , person =1, flag
         csv_file = pd.DataFrame(genuin_data)
         csv_file = csv_file.sample(frac=1)
         if flag == 1:
-            csv_file = csv_file[0:11]
+            csv_file = csv_file[0:31]
         else:
-            csv_file = csv_file[0:10]
+            csv_file = csv_file[0:30]
 
 
 
@@ -158,13 +175,14 @@ def testing(filename1):
 
     acc_history = []
     acc_history_std =[]
+    acc_history_median =[]
     test_data_set = LinesDataSet(filename1, 'Motaz_for_each_Person', transform=transforms.Compose([transforms.ToTensor()]))
     test_line_data_loader = DataLoader(test_data_set, shuffle=False, batch_size=10)
     model = Net()
     model = model.cuda()
     model.load_state_dict(torch.load('model_0.pt', map_location = 'cuda:0'))
-    test(model, test_line_data_loader, acc_history=acc_history, acc_history_std= acc_history_std, train_flag=False)
-    return acc_history , acc_history_std
+    test(model, test_line_data_loader, acc_history=acc_history, acc_history_std= acc_history_std, train_flag=False, acc_history_median= acc_history_median)
+    return acc_history , acc_history_std, acc_history_median
 
 def looping_into_excel(Excel_file):
     excel_file=[]
@@ -198,22 +216,25 @@ def looping_into_excel(Excel_file):
         csv_file = pd.concat([csv_file,second_csv])
         csv_file.to_csv(filename1,index=False, sep=',', header=0)
         print("Start testing")
-        results , result_std= testing(filename1=filename1)
+        results , result_std , result_median= testing(filename1=filename1)
         toadd.append(first_file)
         toadd.append(second_file)
 
         toadd.append(results[0])
         toadd.append(result_std[0])
+        toadd.append(result_median[0])
 
         toadd.append(results[1])
         toadd.append(result_std[1])
+        toadd.append(result_median[1])
 
         toadd.append(results[2])
         toadd.append(result_std[2])
+        toadd.append(result_median[2])
 
         resultss.append(toadd)
     main_Excel = pd.DataFrame(resultss)
-    headerr= ["first","second","pfirst","pfirst_std","pfs","pfs_std","psecond","psecond_std" ]
+    headerr= ["first","second","pfirst","pfirst_std","pfirst_median","pfs","pfs_std","pfs_median","psecond","psecond_std","psecond_median" ]
     main_Excel.to_csv("final1.csv",index=False,sep=",",header=headerr)
     return "final1.csv";
 
@@ -227,5 +248,4 @@ def testing_excel(excel_path, data_path):
     excel =looping_into_excel(test_file)
     return excel
 
-
-
+testing_excel(r"Motaz.xlsx",r"C:\Users\97258\Desktop\Motaz")
