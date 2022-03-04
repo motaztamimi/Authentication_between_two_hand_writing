@@ -23,7 +23,7 @@ def new_func(filename = "match_labels.csv"):
         a_b = random.randint(0,1)
         typee="a"
         if a_b == 1:
-            typee="b" 
+            typee = "b" 
         match_csv = find_match_pairs_two_writer(arr_to_ignore = arr_not_to_match ,person=person1,kind=typee)
         mis_match_csv = find_miss_match_pairs_two_writer(person1=person1, person2=person2,kind=typee)
         arr_not_to_match.append(person1)
@@ -54,7 +54,6 @@ def copy_two_writer_to_another_directory(path='data_for_each_person', writer1 = 
         shutil.copytree(files_writer1_path, new_path)
         new_path1 = 'data_for_two_person/' + dir_writer2 
         shutil.copytree(files_writer2_path, new_path1)
-
 
 def find_match_pairs_two_writer(path = "data_for_two_person" , filename = "match_labels.csv" , arr_to_ignore = [] ,person =1,kind = "a"):
     
@@ -147,6 +146,7 @@ def from_two_pages_to_jpeg(data_path,folder="data1_as_one_page"):
         print('change the file type from 2 pages of type tiff to one jpeg image...')
         prepare_doc.prepare_doc_test(data_path,foleder=folder)
     print('Done.')
+
 
 def creating_lines_for_each_person(path='data1_as_one_page',path_1="data_for_each_person"):
 
@@ -316,7 +316,7 @@ def rename_newData_files(path, start_number):
 
 if __name__ == '__main__':
     print('Starting the preparing phase...')
-    #from_two_pages_to_jpeg("C:/Users/97258/Desktop/wave2 data")
+    #from_two_pages_to_jpeg(r"C:\Users\97258\Desktop\Final Project 2022\Wave3")
     #creating_lines_for_each_person()
     #Delete_White_Lines()
     # find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
@@ -326,5 +326,6 @@ if __name__ == '__main__':
     # create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 5000, "Train_Labels.csv")
     # create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 2000, "Test_Labels.csv")
     # print('Done. Now you can use the data')
-    # resize_image()
+    resize_image()
     # new_func('test_labels_try.csv')
+    #rename_newData_files(r"C:\Users\97258\Desktop\Final Project 2022\Wave3",181)
