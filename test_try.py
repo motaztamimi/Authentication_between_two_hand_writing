@@ -15,7 +15,6 @@ def test ( model,test_loader, acc_history, train_flag):
         image1 = image1[:,None,:,:]
         image2 = image2[:,None,:,:]
         label = label.cuda()
-        
         # print(label)
         with torch.no_grad():
             output = model(image1, image2)
@@ -27,9 +26,6 @@ def test ( model,test_loader, acc_history, train_flag):
                 acc_history.append(1)
             else:
                 acc_history.append(0)
-
-
-
 
 if __name__ == '__main__':
     y_pred = []
