@@ -21,8 +21,6 @@ def find_match_pairs(file, len_, file_name):
         counter = to_return.count(to_add)
         if counter == 0:
             to_return.append(to_add)
-        
-    
     csv_file = pd.DataFrame(to_return)
     csv_file = csv_file.sample(frac=1)
     csv_file.to_csv(file_name,

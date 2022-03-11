@@ -314,6 +314,7 @@ def rename_newData_files(path, start_number):
             start_number+=1
 
 
+
 if __name__ == '__main__':
     print('Starting the preparing phase...')
     #from_two_pages_to_jpeg(r"C:\Users\97258\Desktop\Final Project 2022\Wave3")
@@ -326,6 +327,6 @@ if __name__ == '__main__':
     # create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 5000, "Train_Labels.csv")
     # create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 2000, "Test_Labels.csv")
     # print('Done. Now you can use the data')
-    resize_image()
+    # resize_image()
     # new_func('test_labels_try.csv')
-    #rename_newData_files(r"C:\Users\97258\Desktop\Final Project 2022\Wave3",181)
+    #rename_newData_files(r"C:\Users\97258\Desktop\data 2",40)

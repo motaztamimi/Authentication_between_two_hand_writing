@@ -10,8 +10,6 @@ from matplotlib.pyplot import fill
 import pandas as pd 
 import GUI
 import time
-from multiprocessing import Process, Queue
-import threading
 
 root = tk.Tk()
 root.geometry("900x600")
@@ -74,7 +72,7 @@ treeScrollx.pack(side="bottom",fill="x")
 
 
 def File_dialog():
-    filename = filedialog.askopenfilename(initialdir='/', title = "Select a file", filetypes=(("xlsx files","*.xlsx"),))
+    filename = filedialog.askopenfilename(initialdir='/', title = "Select a file", filetypes=(("xlsx files","*.xlsx"),("csv files","*.csv")))
     Label_file["text"] = filename
     pass
 
