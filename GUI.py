@@ -1,3 +1,4 @@
+from email import header
 from statistics import median
 from cv2 import mean
 from numpy import std
@@ -16,6 +17,7 @@ from torch.utils.data import DataLoader
 Proc_step=0
 def step_excel():
     return Proc_step    
+
 def test ( model,test_loader, acc_history, train_flag, acc_history_std , acc_history_median):
     model.eval()
     count =0
@@ -180,7 +182,7 @@ def testing(filename1):
     test_line_data_loader = DataLoader(test_data_set, shuffle=False, batch_size=10)
     model = Net()
     model = model.cuda()
-    model.load_state_dict(torch.load('model_0.pt', map_location = 'cuda:0'))
+    model.load_state_dict(torch.load('model_230_pretrained.pt', map_location = 'cuda:0'))
     test(model, test_line_data_loader, acc_history=acc_history, acc_history_std= acc_history_std, train_flag=False, acc_history_median= acc_history_median)
     return acc_history , acc_history_std, acc_history_median
 
@@ -238,8 +240,6 @@ def looping_into_excel(Excel_file):
     main_Excel.to_csv("final1.csv",index=False,sep=",",header=headerr)
     return "final1.csv";
 
-
-
 def testing_excel(excel_path, data_path):
    
     print("Starting reading excel file")
@@ -248,4 +248,67 @@ def testing_excel(excel_path, data_path):
     excel =looping_into_excel(test_file)
     return excel
 
-testing_excel(r"Motaz.xlsx",r"C:\Users\97258\Desktop\Motaz")
+def creating_excel_for_testing_3(excel_file1,excel_file2):
+    test_file = pd.read_excel(excel_file1,skiprows=1,header=None)
+    print(test_file)
+    file1 = pd.read_excel(excel_file2,skiprows=1,header=None)
+    print(file1)
+    max_row = file1.shape[0]
+    excel_ = []
+    num = []
+    for i in range(test_file.shape[0]):
+        toadd=[]
+        randoom = random.randint(1,max_row-1)
+        while randoom in num:
+            randoom = random.randint(1,max_row-1)
+        num.append(randoom)
+        leftt= file1.iloc[randoom][0]
+        rightt= file1.iloc[randoom][1]
+        toadd.append(leftt)
+        toadd.append(rightt)
+        excel_.append(toadd)
+    exceell= pd.DataFrame(excel_)
+    headerr = ["first","second"]
+
+    main_excel=pd.concat([test_file,exceell],ignore_index=False)
+    main_excel.to_excel("testing3.xlsx",index=False, header=headerr)
+
+def creating_excel_for_testing_2(excel_file):
+    test_file = pd.read_excel(excel_file,header=None)
+    max_row = test_file.shape[0]
+    excel_ = []
+    for i in range(0,max_row,1):
+        toadd=[]
+        left_writer = test_file.iloc[i][0]
+        for j in range(0,max_row,1):
+            if i != j:
+                toadd=[]
+                right_writer = test_file.iloc[j][0]
+                toadd.append(left_writer)
+                toadd.append(right_writer)
+                excel_.append(toadd)
+    main_excel = pd.DataFrame(excel_)
+    headerr = ["first","second"]
+    main_excel.to_excel("testing2.xlsx",index=False,header=headerr)
+
+def create_excel_for_testing(excel_file):
+    test_file = pd.read_excel(excel_file,header=None,)
+    max_row = test_file.shape[0]
+    excel_ =[]
+    for i in range(0,max_row,1):
+        toadd=[]
+        left_writer =  test_file.iloc[i][0]
+        toadd.append(left_writer)
+        toadd.append(left_writer)
+        excel_.append(toadd)
+    main_excel = pd.DataFrame(excel_)
+    headerr = ["first","second"]
+    main_excel.to_excel("testing.xlsx",index=False,header=headerr)
+    return 
+
+
+
+#testing_excel(r"Motaz.xlsx",r"C:\Users\97258\Desktop\Motaz")
+# create_excel_for_testing(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
+# creating_excel_for_testing_2(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
+# creating_excel_for_testing_3("testing.xlsx","testing2.xlsx")
