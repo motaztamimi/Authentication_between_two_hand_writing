@@ -1,3 +1,4 @@
+from cv2 import transform
 import torch
 import torch.nn as nn
 import torchvision
@@ -11,7 +12,7 @@ from way_2_model import Net
 import numpy as np
 import seaborn as sn
 import pandas as pd
-import sys
+from customResNet import ResNet, ResidualBlock
 from torch.utils.tensorboard import SummaryWriter
 
 def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
@@ -87,10 +88,10 @@ def test_for_confusion_matrix(model, test_loader):
 
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs/with_reg_for_230_writers_on_arabic_test_on_50_pretrained_25K_afterCleanData')
-    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_arabic.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor()]))
-    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person', transform=transforms.Compose([transforms.ToTensor()]))
-    train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
+    writer_ = SummaryWriter('runs/custom_ResNet_with_reg_for_194_writers_on_arabic_test_on_49_pretrained_25K_afterCleanData_withnorm')
+    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_arabic.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,),(0.5,))  ]))
+    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,),(0.5,))  ]))
+    train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=60)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=1)
 
@@ -101,7 +102,7 @@ if __name__ == "__main__":
     example_img1 = example_img1[:,None,:,:].float().cuda()
     example_img2 = example_img2[:,None,:,:].float().cuda()
 
-    for k in range(0,4,2):
+    for k in range(0, 4, 3):
         torch.manual_seed(17)
 
         loss_function = nn.MSELoss()
@@ -110,10 +111,11 @@ if __name__ == "__main__":
         loss_history_for_ephoces = []
         all_acc_test = []
         all_acc_train = []
-        my_model = Net()
+        my_model = ResNet(ResidualBlock, [2, 2, 2])
+        # my_model = Net()
         if k==0:
-            my_model.load_state_dict(torch.load(r"C:\Users\FinalProject\Desktop\important_for_the_project\models\model_without_reg_for_english_data_set\model_0.pt", map_location='cuda:0'))
-
+            # my_model.load_state_dict(torch.load(r"C:\Users\FinalProject\Desktop\important_for_the_project\models\model_without_reg_for_english_data_set\model_0.pt", map_location='cuda:0'))
+            pass
 
         if k == 1:
             my_model.cnn.conv1 = torch.nn.Conv2d(1, 64, 7, stride=2, padding=3, bias=False)
@@ -148,7 +150,7 @@ if __name__ == "__main__":
             writer_.add_scalar('train_loss_{}'.format(k), loss_history_for_ephoces[i], i)
             print('epoch loss: {}'.format(loss_history_for_ephoces[i]))
 
-            torch.save(my_model.state_dict(), 'model_{}.pt'.format(k))
+            torch.save(my_model.state_dict(), 'model_{}_epoch_{}.pt'.format(k, i + 1))
 
             y_pred = []
             y_true = []
@@ -170,7 +172,7 @@ if __name__ == "__main__":
             # test_for_confusion_matrix(my_model, test_line_data_loader)
             cf_matrix = confusion_matrix(y_true, y_pred)
             classes = ('0', '1')
-            df_cm = pd.DataFrame(cf_matrix / 4000, index = [i for i in classes],
+            df_cm = pd.DataFrame(cf_matrix / 8000, index = [i for i in classes],
                         columns = [i for i in classes])
             plt.figure(figsize = (12,7))
 
