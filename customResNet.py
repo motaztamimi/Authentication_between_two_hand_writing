@@ -50,8 +50,8 @@ class ResNet(nn.Module):
         self.layer3 = self.make_layer(block, 64, layers[2], 2)
         # self.layer4 = self.make_layer(block, 512, layers[3], 2)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Sequential(nn.Linear(64, 32), nn.ReLU())
-        self.fc1 = nn.Sequential(nn.Linear(128, num_classes), nn.Sigmoid())
+        self.fc = nn.Sequential(nn.Linear(64, 64), nn.ReLU())
+        self.fc1 = nn.Sequential(nn.Linear(256, num_classes), nn.Sigmoid())
 
     def make_layer(self, block, out_channels, blocks, stride=1):
         downsample = None

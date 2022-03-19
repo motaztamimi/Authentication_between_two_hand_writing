@@ -88,7 +88,7 @@ def test_for_confusion_matrix(model, test_loader):
 
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs/custom_ResNet_with_reg_for_194_writers_on_arabic_test_on_49_pretrained_25K_afterCleanData_withnorm')
+    writer_ = SummaryWriter('runs/custom_ResNet_with_reg_writers_on_arabic_with_weight_decay_64_vector')
     train_line_data_set = LinesDataSet(csv_file="Train_labels_for_arabic.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,),(0.5,))  ]))
     test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,),(0.5,))  ]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=60)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
     example_img1 = example_img1[:,None,:,:].float().cuda()
     example_img2 = example_img2[:,None,:,:].float().cuda()
 
-    for k in range(0, 4, 3):
+    for k in range(0, 4, 4):
         torch.manual_seed(17)
 
         loss_function = nn.MSELoss()
@@ -114,7 +114,7 @@ if __name__ == "__main__":
         my_model = ResNet(ResidualBlock, [2, 2, 2])
         # my_model = Net()
         if k==0:
-            # my_model.load_state_dict(torch.load(r"C:\Users\FinalProject\Desktop\important_for_the_project\models\model_without_reg_for_english_data_set\model_0.pt", map_location='cuda:0'))
+            # my_model.load_state_dict(torch.load('model_0.pt', map_location='cuda:0'))
             pass
 
         if k == 1:
@@ -150,7 +150,7 @@ if __name__ == "__main__":
             writer_.add_scalar('train_loss_{}'.format(k), loss_history_for_ephoces[i], i)
             print('epoch loss: {}'.format(loss_history_for_ephoces[i]))
 
-            torch.save(my_model.state_dict(), 'model_{}_epoch_{}.pt'.format(k, i + 1))
+            torch.save(my_model.state_dict(), 'model_{}_epoch_{}.pt'.format(k,i+1))
 
             y_pred = []
             y_true = []
