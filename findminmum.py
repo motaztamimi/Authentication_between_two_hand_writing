@@ -1,10 +1,10 @@
 import os
 import cv2
 
-def find_min():
+def find_min(dir):
 
     max_height = 9000
-    dir_name = "data_for_each_person"
+    dir_name = dir
     dirs = os.listdir(dir_name)
     for _dir in dirs:
         if _dir !='.DS_Store':
@@ -23,11 +23,11 @@ def find_min():
 
 
 
-if __name__ == "__main__":
-    min = 1
-    count =0;
-    while min < 55:
-       min = find_min()
-       count+=1
-    print(count)   
+# if __name__ == "__main__":
+#     min = 1
+#     count =0;
+#     while min < 55:
+#        min = find_min()
+#        count+=1
+#     print(count)   
 

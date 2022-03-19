@@ -1,5 +1,6 @@
 from email import header
 from statistics import median
+from unittest import result
 from cv2 import mean
 from numpy import std
 import detection_function
@@ -14,7 +15,52 @@ import torch
 import torchvision.transforms as transforms
 from data_set import LinesDataSet
 from torch.utils.data import DataLoader
+import findminmum
+from customResNet import ResNet, ResidualBlock
+
 Proc_step=0
+
+
+
+def update_excel(excel_file):
+    test_file = pd.read_excel(excel_file)
+    
+    test_file["firstt"] = [ i.split('-')[0] for i in  test_file['first'] ]
+    test_file["secondd"] = [ i.split('-')[0] for i in  test_file['second'] ]
+    test_file['all'] = [ test_file['pfs_median'][indx] / (0.5*(test_file['pfirst_median'][indx]+test_file['psecond_median'][indx]))  for indx,_ in enumerate(test_file['pfirst_median'])]
+    test_file['all2'] = [ test_file['pfs'][indx] / (0.5*(test_file['pfirst'][indx]+test_file['psecond'][indx]))  for indx,_ in enumerate(test_file['pfirst_median'])]
+
+    arr =[]
+    for indx , _ in enumerate(test_file['all']):
+        if test_file['firstt'][indx] == test_file['secondd'][indx]:
+            if test_file['all'][indx] >= 0.5:
+                arr.append(1)
+            else:
+                arr.append(0)
+        else:
+            if test_file['all'][indx] > 0.5:
+                arr.append(0)
+            else:
+                arr.append(1)
+    arr1 =[]
+    for indx , _ in enumerate(test_file['all2']):
+        if test_file['firstt'][indx] == test_file['secondd'][indx]:
+            if test_file['all2'][indx] >= 0.5:
+                arr1.append(1)
+            else:
+                arr1.append(0)
+        else:
+            if test_file['all2'][indx] > 0.5:
+                arr1.append(0)
+            else:
+                arr1.append(1)
+    test_file['result'] = arr
+
+    test_file['result2'] = arr1
+
+    return test_file['result'].mean(),test_file['result2'].mean() 
+
+
 def step_excel():
     return Proc_step    
 
@@ -37,7 +83,6 @@ def test ( model,test_loader, acc_history, train_flag, acc_history_std , acc_his
             resultt= mean(output[:,0].cpu().numpy())[0]
             resultstd = std(output[:,0].cpu().numpy())
             result_median = median(output[:,0].cpu().numpy())
-            _, predeict_= torch.max(output, dim=1, keepdim=False)
             acc_nean.append(resultt)
             acc_std.append(resultstd)
             acc_median.append(result_median)
@@ -171,22 +216,29 @@ def detect_lines(Excel_file,datapath):
     prepare_data.from_two_pages_to_jpeg(datapath,"Motaz_as_one_page")
     creating_lines_for_each_file("Motaz_as_one_page","Motaz_for_each_Person")
     prepare_data.Delete_White_Lines("Motaz_for_each_Person")
+    min = 1
+    count =0;
+    while min < 55:
+       min = findminmum.find_min("Motaz_for_each_Person")
+       count+=1
+    print(count)   
     prepare_data.resize_image("Motaz_for_each_Person")
 
-def testing(filename1):
+def testing(filename1 ,model_path):
 
     acc_history = []
     acc_history_std =[]
     acc_history_median =[]
-    test_data_set = LinesDataSet(filename1, 'Motaz_for_each_Person', transform=transforms.Compose([transforms.ToTensor()]))
+    test_data_set = LinesDataSet(filename1, 'Motaz_for_each_Person', transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,),(0.5,))  ]))
     test_line_data_loader = DataLoader(test_data_set, shuffle=False, batch_size=10)
-    model = Net()
+    model = ResNet(ResidualBlock, [2, 2, 2])
+
     model = model.cuda()
-    model.load_state_dict(torch.load('model_230_pretrained.pt', map_location = 'cuda:0'))
+    model.load_state_dict(torch.load(model_path, map_location = 'cuda:0'))
     test(model, test_line_data_loader, acc_history=acc_history, acc_history_std= acc_history_std, train_flag=False, acc_history_median= acc_history_median)
     return acc_history , acc_history_std, acc_history_median
 
-def looping_into_excel(Excel_file):
+def looping_into_excel(Excel_file,model_path):
     excel_file=[]
     resultss= []
     csv_file = pd.DataFrame(excel_file)
@@ -218,7 +270,7 @@ def looping_into_excel(Excel_file):
         csv_file = pd.concat([csv_file,second_csv])
         csv_file.to_csv(filename1,index=False, sep=',', header=0)
         print("Start testing")
-        results , result_std , result_median= testing(filename1=filename1)
+        results , result_std , result_median= testing(filename1=filename1,model_path=model_path)
         toadd.append(first_file)
         toadd.append(second_file)
 
@@ -237,16 +289,20 @@ def looping_into_excel(Excel_file):
         resultss.append(toadd)
     main_Excel = pd.DataFrame(resultss)
     headerr= ["first","second","pfirst","pfirst_std","pfirst_median","pfs","pfs_std","pfs_median","psecond","psecond_std","psecond_median" ]
-    main_Excel.to_csv("final1.csv",index=False,sep=",",header=headerr)
-    return "final1.csv";
+    main_Excel.to_excel("final1.xlsx",index=False,header=headerr)
+    return "final1.xlsx";
 
 def testing_excel(excel_path, data_path):
-   
     print("Starting reading excel file")
     test_file = pd.read_excel(excel_path)
     detect_lines(test_file,data_path)
-    excel =looping_into_excel(test_file)
-    return excel
+    return test_file
+
+def main_test(test_file, model_path):
+    excel =looping_into_excel(test_file,model_path=model_path)
+    median_avg, mean_avg = update_excel(excel)
+    print( median_avg, mean_avg)
+    return median_avg, mean_avg
 
 def creating_excel_for_testing_3(excel_file1,excel_file2):
     test_file = pd.read_excel(excel_file1,skiprows=1,header=None)
@@ -256,7 +312,7 @@ def creating_excel_for_testing_3(excel_file1,excel_file2):
     max_row = file1.shape[0]
     excel_ = []
     num = []
-    for i in range(test_file.shape[0]):
+    for i in range(test_file.shape[0]+300):
         toadd=[]
         randoom = random.randint(1,max_row-1)
         while randoom in num:
@@ -308,7 +364,23 @@ def create_excel_for_testing(excel_file):
 
 
 
-#testing_excel(r"Motaz.xlsx",r"C:\Users\97258\Desktop\Motaz")
+if __name__ == '__main__':
+    test_file = testing_excel(r"testing3.xlsx",r"C:\Users\97258\Desktop\Motaz")
+    result1 =[]
+    for i in range(0,30):
+        print("epoch",i+1)
+        to_add =[]
+        model_path = r'C:\Users\97258\Desktop\custom_resnet\custom_ResNet_without_reg_writers_on_arabic_with_weight_decay_pre_trained\model_0_epoch_{}.pt'.format(i+1)
+        median_avg, mean_avg= main_test(test_file=test_file,model_path=model_path)
+        to_add.append(i+1)
+        to_add.append(median_avg)
+        to_add.append(mean_avg)
+        result1.append(to_add)
+    excell= pd.DataFrame(result1)
+    headerr = ['step','median','mean']
+    excell.to_excel('mustafa.xlsx',index=False,header=headerr)
+
+
 # create_excel_for_testing(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
 # creating_excel_for_testing_2(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
 # creating_excel_for_testing_3("testing.xlsx","testing2.xlsx")
