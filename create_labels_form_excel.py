@@ -107,14 +107,14 @@ def resize(file):
 
 if __name__ == '__main__':
     
-    test_file  = pd.read_excel('0-40D.xlsx')
-    train_file = pd.read_excel('41-100D.xlsx')
+    train_file = pd.read_excel('motaz.xlsx',sheet_name='train')
+    test_file= pd.read_excel('motaz.xlsx',sheet_name='test')
 
-    find_match_pairs(test_file, 4000, 'match_labels_from_arabic_for_test.csv')
-    find_match_pairs(train_file, 12500, 'match_labels_from_arabic_for_train.csv')
-    find_miss_match_pairs(test_file, 4000, 'miss_match_labels_from_arabic_for_test.csv')
-    find_miss_match_pairs(train_file, 12500, 'miss_match_labels_from_arabic_for_train.csv')
+    find_match_pairs(test_file, 4000, 'match_labels_from_hebrew_for_test.csv')
+    find_match_pairs(train_file, 12500, 'match_labels_from_hebrew_for_train.csv')
+    find_miss_match_pairs(test_file, 4000, 'miss_match_labels_from_hebrew_for_test.csv')
+    find_miss_match_pairs(train_file, 12500, 'miss_match_labels_from_hebrew_for_train.csv')
 
-    create_label_file('match_labels_from_arabic_for_test.csv', 'miss_match_labels_from_arabic_for_test.csv', 4000, 'Test_labels_for_arabic.csv')
-    create_label_file('match_labels_from_arabic_for_train.csv', 'miss_match_labels_from_arabic_for_train.csv', 12500, 'Train_labels_for_arabic.csv')
+    create_label_file('match_labels_from_hebrew_for_test.csv', 'miss_match_labels_from_hebrew_for_test.csv', 4000, 'Test_labels_for_hebrew.csv')
+    create_label_file('match_labels_from_hebrew_for_train.csv', 'miss_match_labels_from_hebrew_for_train.csv', 12500, 'Train_labels_for_hebrew.csv')
     

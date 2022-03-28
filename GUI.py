@@ -104,7 +104,7 @@ def creating_lines_for_each_file(path='data1_as_one_page',path_1="data_for_each_
     
     if os.path.exists(path):
 
-        print('Finding lines for each person...')
+        # print('Finding lines for each person...')
 
         files = os.listdir(path)
 
@@ -124,13 +124,13 @@ def creating_lines_for_each_file(path='data1_as_one_page',path_1="data_for_each_
                     name = 'p'+str(number) + "_L_"+str((indx + 1))
                     to_save.save('{}/{}/{}.jpeg'.format(path_1,
                                                         dir_name, name))
-        print('Done.')
+        # print('Done.')
 
 def find_miss_match_pairs_two_writer(path='Motaz_for_each_Person',person1 = 1, person2 = 2 ):
     
     if os.path.exists(path):
 
-        print('Creating all pairs of lines that creat a Miss Match and store the labels in csv file...')
+        # print('Creating all pairs of lines that creat a Miss Match and store the labels in csv file...')
         diff_data = []
         dir_name = path
         dirs = os.listdir(dir_name)
@@ -166,12 +166,12 @@ def find_miss_match_pairs_two_writer(path='Motaz_for_each_Person',person1 = 1, p
         csv_file.to_csv("filename1.csv",index=False, sep=',', header=0)
         csv_file = csv_file.sample(frac=1)
         csv_file = csv_file[0:30] 
-        print('Done.')
+        # print('Done.')
         return csv_file
 
 def find_match_pairs_two_writer(path = "Motaz_for_each_Person" , person =1, flag= False):
     if os.path.exists(path):
-        print('Creating all possible pairs of lines that creat a Match and store the labels in csv file...')
+        # print('Creating all possible pairs of lines that creat a Match and store the labels in csv file...')
         dir_name = path
         genuin_data = []
         dirs = os.listdir(dir_name)
@@ -217,7 +217,7 @@ def detect_lines(Excel_file,datapath):
     creating_lines_for_each_file("Motaz_as_one_page","Motaz_for_each_Person")
     prepare_data.Delete_White_Lines("Motaz_for_each_Person")
     min = 1
-    count =0;
+    count =0
     while min < 55:
        min = findminmum.find_min("Motaz_for_each_Person")
        count+=1
@@ -252,7 +252,7 @@ def looping_into_excel(Excel_file,model_path):
         first_file=Excel_file.loc[i][0]
         #take the second cell extract the name of the file
         second_file=Excel_file.loc[i][1]
-        print(first_file + "," + second_file)
+        # print(first_file + "," + second_file)
         global Proc_step
         Proc_step = (i+1)/max_rows       
         first_file_number = first_file.split(".")[0]
@@ -269,7 +269,7 @@ def looping_into_excel(Excel_file,model_path):
         csv_file = pd.concat([csv_file,third_csv])
         csv_file = pd.concat([csv_file,second_csv])
         csv_file.to_csv(filename1,index=False, sep=',', header=0)
-        print("Start testing")
+        # print("Start testing")
         results , result_std , result_median= testing(filename1=filename1,model_path=model_path)
         toadd.append(first_file)
         toadd.append(second_file)
@@ -290,10 +290,10 @@ def looping_into_excel(Excel_file,model_path):
     main_Excel = pd.DataFrame(resultss)
     headerr= ["first","second","pfirst","pfirst_std","pfirst_median","pfs","pfs_std","pfs_median","psecond","psecond_std","psecond_median" ]
     main_Excel.to_excel("final1.xlsx",index=False,header=headerr)
-    return "final1.xlsx";
+    return "final1.xlsx"
 
 def testing_excel(excel_path, data_path):
-    print("Starting reading excel file")
+    # print("Starting reading excel file")
     test_file = pd.read_excel(excel_path)
     detect_lines(test_file,data_path)
     return test_file
@@ -312,7 +312,7 @@ def creating_excel_for_testing_3(excel_file1,excel_file2):
     max_row = file1.shape[0]
     excel_ = []
     num = []
-    for i in range(test_file.shape[0]+300):
+    for i in range(test_file.shape[0]+2000):
         toadd=[]
         randoom = random.randint(1,max_row-1)
         while randoom in num:
@@ -365,12 +365,12 @@ def create_excel_for_testing(excel_file):
 
 
 if __name__ == '__main__':
-    test_file = testing_excel(r"testing3.xlsx",r"C:\Users\97258\Desktop\Motaz")
+    test_file = testing_excel(r"testing3.xlsx",r"C:\Users\FinalProject\Desktop\Motaz")
     result1 =[]
     for i in range(0,30):
         print("epoch",i+1)
         to_add =[]
-        model_path = r'C:\Users\97258\Desktop\custom_resnet\custom_ResNet_without_reg_writers_on_arabic_with_weight_decay_pre_trained\model_0_epoch_{}.pt'.format(i+1)
+        model_path = r'model_0_epoch_{}.pt'.format(i+1)
         median_avg, mean_avg= main_test(test_file=test_file,model_path=model_path)
         to_add.append(i+1)
         to_add.append(median_avg)
@@ -381,6 +381,6 @@ if __name__ == '__main__':
     excell.to_excel('mustafa.xlsx',index=False,header=headerr)
 
 
-# create_excel_for_testing(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
-# creating_excel_for_testing_2(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
+# create_excel_for_testing(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
+# creating_excel_for_testing_2(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
 # creating_excel_for_testing_3("testing.xlsx","testing2.xlsx")
