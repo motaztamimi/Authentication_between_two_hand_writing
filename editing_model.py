@@ -1,5 +1,5 @@
 from traceback import print_tb
-from cv2 import transform
+from cv2 import repeat, transform
 import torch
 import torch.nn as nn
 import torchvision
@@ -12,7 +12,9 @@ from data_set import LinesDataSet
 import numpy as np
 import seaborn as sn
 import pandas as pd
-
+from way_2_model import Net
+from Network_try import train as trainN
+from Network_try import test as testN
 
 def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
     model.train()
@@ -27,26 +29,13 @@ def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
 
         output = model(image1, image2)
         optimizer.zero_grad()
-        # new_label = torch.empty((label.shape[0], 2)).float().cuda()
-
-        # for i in range(label.shape[0]):
-        #     if label[i].item() == 1.:
-        #         new_label[i][0] = 0.
-        #         new_label[i][1] = 1.
-        #     if label[i].item() == 0.:
-        #         new_label[i][0] = 1.
-        #         new_label[i][1] = 0.
-        output = torch.where(output > 0.5, 0, 1).float()
-        output.requires_grad = True
         loss = loss_function(output, label)
-        print(f'output: {output}')
-        print(f'labels: {label}')
-        print(f'loss: {loss}')
         loss_history.append(loss.cpu().item())
         batches_loss.append(loss.cpu().item())
         loss.backward()
         optimizer.step()
     loss_history_for_ephoces.append( sum(batches_loss) / len(batches_loss))
+
 
 def test ( model,test_loader, acc_history, train_flag):
     model.eval()
@@ -169,27 +158,29 @@ if __name__ == '__main__':
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=1)
     torch.manual_seed(17)
 
-    loss_function = nn.CrossEntropyLoss()
+    loss_function = nn.MSELoss()
     loss_history = []
-    loss_history_for_ephoces = []
     all_acc_test = []
     all_acc_train = []
     my_model = ResNet(ResidualBlock, [2, 2, 2])
+    # my_model = Net()
     my_model = my_model.cuda()
-    optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001, weight_decay=0.0001)
+    # my_model.load_state_dict(torch.load(r'C:\Users\FinalProject\Desktop\backup_models\custom_resnet_with_reg_writers_on_hebrew_with_weight_decay_64_vector_with_random_Erase_just_on_train\model_0_epoch_30.pt', map_location='cuda:0'))
+    optimizer = torch.optim.SGD(my_model.parameters(), lr=0.001, weight_decay=0.0001)
+    loss_history_for_ephoces = []
+    for i in range(3):
+        train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, 0)
+        print('epoch loss: {}'.format(loss_history_for_ephoces[0]))
 
-    train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, 0)
-    print('epoch loss: {}'.format(loss_history_for_ephoces[0]))
+        y_pred = []
+        y_true = []
 
-    y_pred = []
-    y_true = []
+        print('Testing on Train Data_set...')
+        test(my_model, train_line_data_loader_for_test, acc_history = [], train_flag = True)
 
-    print('Testing on Train Data_set...')
-    test(my_model, train_line_data_loader_for_test, acc_history = [], train_flag = True)
+        y_pred = []
+        y_true = []
 
-    y_pred = []
-    y_true = []
-
-    print('Testing on Test Data_set...')
-    test(my_model, test_line_data_loader, acc_history = [], train_flag = False)
-    
+        print('Testing on Test Data_set...')
+        test(my_model, test_line_data_loader, acc_history = [], train_flag = False)
+        

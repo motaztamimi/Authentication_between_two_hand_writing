@@ -14,6 +14,7 @@ import seaborn as sn
 import pandas as pd
 from customResNet import ResNet, ResidualBlock
 from torch.utils.tensorboard import SummaryWriter
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
     model.train()
@@ -88,8 +89,8 @@ def test_for_confusion_matrix(model, test_loader):
 
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs/custom_resnet_with_reg_writers_on_hebrew_with_weight_decay_64_vector_with_random_Erase_just_on_train')
-    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_hebrew.csv", root_dir="data2_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,)), transforms.RandomErasing()]))
+    writer_ = SummaryWriter('runs/custom_resnet_with_reg_writers_on_hebrew_with_weight_decay_64_vector_with_learing_rate_decaye')
+    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_hebrew.csv", root_dir="data2_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     test_line_data_set = LinesDataSet(csv_file="Test_labels_for_hebrew.csv", root_dir='data2_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
@@ -139,6 +140,7 @@ if __name__ == "__main__":
 
         my_model = my_model.cuda()
         optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001, weight_decay=0.0001)
+        scheduler = ReduceLROnPlateau(optimizer, 'min', patience = 2, verbose=True)
         writer_.add_graph(my_model.cuda(), (example_img1, example_img2))
 
         # my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
