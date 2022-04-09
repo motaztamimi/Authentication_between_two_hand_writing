@@ -17,10 +17,7 @@ from data_set import LinesDataSet
 from torch.utils.data import DataLoader
 import findminmum
 from customResNet import ResNet, ResidualBlock
-
 Proc_step=0
-
-
 
 def update_excel(excel_file):
     test_file = pd.read_excel(excel_file)
@@ -29,7 +26,6 @@ def update_excel(excel_file):
     test_file["secondd"] = [ i.split('-')[0] for i in  test_file['second'] ]
     test_file['all'] = [ test_file['pfs_median'][indx] / (0.5*(test_file['pfirst_median'][indx]+test_file['psecond_median'][indx]))  for indx,_ in enumerate(test_file['pfirst_median'])]
     test_file['all2'] = [ test_file['pfs'][indx] / (0.5*(test_file['pfirst'][indx]+test_file['psecond'][indx]))  for indx,_ in enumerate(test_file['pfirst_median'])]
-
     arr =[]
     for indx , _ in enumerate(test_file['all']):
         if test_file['firstt'][indx] == test_file['secondd'][indx]:
@@ -57,12 +53,13 @@ def update_excel(excel_file):
     test_file['result'] = arr
 
     test_file['result2'] = arr1
-
-    return test_file['result'].mean(),test_file['result2'].mean() 
+    test_file.to_csv("final_GUI.csv")
+    return "final_GUI.csv" ,test_file['result'].mean(),test_file['result2'].mean() 
 
 
 def step_excel():
     return Proc_step    
+
 
 def test ( model,test_loader, acc_history, train_flag, acc_history_std , acc_history_median):
     model.eval()
@@ -100,6 +97,7 @@ def test ( model,test_loader, acc_history, train_flag, acc_history_std , acc_his
             acc_median = []
     return acc_history , acc_history_std, acc_history_median
 
+
 def creating_lines_for_each_file(path='data1_as_one_page',path_1="data_for_each_person"):
     
     if os.path.exists(path):
@@ -125,6 +123,7 @@ def creating_lines_for_each_file(path='data1_as_one_page',path_1="data_for_each_
                     to_save.save('{}/{}/{}.jpeg'.format(path_1,
                                                         dir_name, name))
         print('Done.')
+
 
 def find_miss_match_pairs_two_writer(path='Motaz_for_each_Person',person1 = 1, person2 = 2 ):
     
@@ -169,6 +168,7 @@ def find_miss_match_pairs_two_writer(path='Motaz_for_each_Person',person1 = 1, p
         print('Done.')
         return csv_file
 
+
 def find_match_pairs_two_writer(path = "Motaz_for_each_Person" , person =1, flag= False):
     if os.path.exists(path):
         print('Creating all possible pairs of lines that creat a Match and store the labels in csv file...')
@@ -212,6 +212,7 @@ def find_match_pairs_two_writer(path = "Motaz_for_each_Person" , person =1, flag
 
         return csv_file
 
+
 def detect_lines(Excel_file,datapath):
     prepare_data.from_two_pages_to_jpeg(datapath,"Motaz_as_one_page")
     creating_lines_for_each_file("Motaz_as_one_page","Motaz_for_each_Person")
@@ -223,6 +224,7 @@ def detect_lines(Excel_file,datapath):
        count+=1
     print(count)   
     prepare_data.resize_image("Motaz_for_each_Person")
+
 
 def testing(filename1 ,model_path):
 
@@ -238,12 +240,14 @@ def testing(filename1 ,model_path):
     test(model, test_line_data_loader, acc_history=acc_history, acc_history_std= acc_history_std, train_flag=False, acc_history_median= acc_history_median)
     return acc_history , acc_history_std, acc_history_median
 
-def looping_into_excel(Excel_file,model_path):
+
+def looping_into_excel(Excel_file,model_path,que,que2):
     excel_file=[]
     resultss= []
     csv_file = pd.DataFrame(excel_file)
     max_rows=Excel_file.shape[0]
     for i in range(max_rows):
+        que.put(i+1)
         excel_file=[]
         toadd=[]
         #create data frame 
@@ -285,24 +289,28 @@ def looping_into_excel(Excel_file,model_path):
         toadd.append(results[2])
         toadd.append(result_std[2])
         toadd.append(result_median[2])
-
+        que2.put(toadd)
         resultss.append(toadd)
     main_Excel = pd.DataFrame(resultss)
     headerr= ["first","second","pfirst","pfirst_std","pfirst_median","pfs","pfs_std","pfs_median","psecond","psecond_std","psecond_median" ]
     main_Excel.to_excel("final1.xlsx",index=False,header=headerr)
     return "final1.xlsx";
 
-def testing_excel(excel_path, data_path):
+
+def testing_excel(excel_path, data_path,que,que2):
     print("Starting reading excel file")
     test_file = pd.read_excel(excel_path)
-    detect_lines(test_file,data_path)
-    return test_file
+    #detect_lines(test_file,data_path)
+    excel_fil,median_avg, mean_avg=main_test(test_file=test_file,model_path=r"C:\Users\97258\Desktop\custom_resnet\custom_ResNet_without_reg_writers_on_arabic_with_weight_decay_pre_trained\model_0_epoch_30.pt",que=que,que2=que2)
+    return excel_fil
 
-def main_test(test_file, model_path):
-    excel =looping_into_excel(test_file,model_path=model_path)
-    median_avg, mean_avg = update_excel(excel)
+
+def main_test(test_file, model_path,que,que2):
+    excel =looping_into_excel(test_file,model_path=model_path,que=que,que2=que2)
+    excel_file,median_avg, mean_avg = update_excel(excel)
     print( median_avg, mean_avg)
-    return median_avg, mean_avg
+    return excel_file,median_avg, mean_avg
+
 
 def creating_excel_for_testing_3(excel_file1,excel_file2):
     test_file = pd.read_excel(excel_file1,skiprows=1,header=None)
@@ -329,6 +337,7 @@ def creating_excel_for_testing_3(excel_file1,excel_file2):
     main_excel=pd.concat([test_file,exceell],ignore_index=False)
     main_excel.to_excel("testing3.xlsx",index=False, header=headerr)
 
+
 def creating_excel_for_testing_2(excel_file):
     test_file = pd.read_excel(excel_file,header=None)
     max_row = test_file.shape[0]
@@ -347,6 +356,7 @@ def creating_excel_for_testing_2(excel_file):
     headerr = ["first","second"]
     main_excel.to_excel("testing2.xlsx",index=False,header=headerr)
 
+
 def create_excel_for_testing(excel_file):
     test_file = pd.read_excel(excel_file,header=None,)
     max_row = test_file.shape[0]
@@ -363,8 +373,7 @@ def create_excel_for_testing(excel_file):
     return 
 
 
-
-if __name__ == '__main__':
+def median_mean_test():
     test_file = testing_excel(r"testing3.xlsx",r"C:\Users\97258\Desktop\Motaz")
     result1 =[]
     for i in range(0,30):
@@ -379,7 +388,6 @@ if __name__ == '__main__':
     excell= pd.DataFrame(result1)
     headerr = ['step','median','mean']
     excell.to_excel('mustafa.xlsx',index=False,header=headerr)
-
 
 # create_excel_for_testing(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
 # creating_excel_for_testing_2(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
