@@ -344,7 +344,7 @@ def rename_newData_files(path, start_number):
 if __name__ == '__main__':
     print('Starting the preparing phase...')
     # from_two_pages_to_jpeg(r"C:\Users\FinalProject\Desktop\hebrew data","data2_as_one_page")
-    #Delete_White_Lines("data2_for_each_person")
+    # Delete_White_Lines("data2_for_each_person")
     # find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
     # find_match_pairs(start=30,end=39,filename="Test_match_labels.csv")
     # find_miss_match_pairs(start=0,end=30,filename="Train_miss_match_labels.csv")

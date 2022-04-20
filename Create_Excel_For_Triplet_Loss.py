@@ -1,8 +1,9 @@
 
+from cgi import test
 import pandas as pd
 import random
 
-def create_excel(file, len_, file_name):
+def create_csv(file, len_, file_name):
     max_col = file.columns.size
     ancor = {}
     to_return = []
@@ -35,12 +36,11 @@ def create_excel(file, len_, file_name):
     csv_file = csv_file.sample(frac=1)
     csv_file.to_csv(file_name,
                         index=False, sep=',', header=headerr)
-    return to_return
-
 
 
 if __name__ == "__main__":
 
     train_file  = pd.read_excel('1-230Arabic.xlsx')
-    create_excel(train_file, 4000, 'testing_triplet.csv')
-    print("hello world")
+    test_file = pd.read_excel('50D_test_arabic.xlsx')
+    create_csv(train_file, 24000, 'train_triplet.csv')
+    create_csv(test_file, 8000, 'test_triplet.csv')
