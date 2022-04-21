@@ -147,6 +147,32 @@ def from_two_pages_to_jpeg(data_path,folder="data1_as_one_page"):
         prepare_doc.prepare_doc_test(data_path,foleder=folder)
     print('Done.')
 
+#this function just for hebrew data
+def creating_lines_for_each_person_hebrew(path='data2_as_one_page',path_1="data2_for_each_person"):
+
+    if os.path.exists(path):
+
+        print('Finding lines for each person...')
+
+        files = os.listdir(path)
+
+        if not os.path.exists(path_1):
+            os.mkdir(path_1)
+        for file in files:
+            if file != '.DS_Store':
+                number = int(file.split('.')[0])
+                dir_name = 'person_{}'.format(number)
+                if not os.path.exists(os.path.join(path_1, dir_name)):
+                    os.mkdir(path_1 + '/' + dir_name)
+                img = cv2.imread(path + '/' + file, 0)
+                lines = detection_function.detect_lines(img)
+                for indx, line in enumerate(lines):
+                    to_save = Image.fromarray(line)
+                    name = 'p' + str(number) +  \
+                    '_L_' + str((indx + 1))
+                    to_save.save('{}/{}/{}.jpeg'.format(path_1,
+                                                        dir_name, name))
+        print('Done.')
 
 def creating_lines_for_each_person(path='data1_as_one_page',path_1="data_for_each_person"):
 
@@ -317,9 +343,8 @@ def rename_newData_files(path, start_number):
 
 if __name__ == '__main__':
     print('Starting the preparing phase...')
-    #from_two_pages_to_jpeg(r"C:\Users\97258\Desktop\Final Project 2022\Wave3")
-    #creating_lines_for_each_person()
-    #Delete_White_Lines()
+    # from_two_pages_to_jpeg(r"C:\Users\FinalProject\Desktop\hebrew data","data2_as_one_page")
+    # Delete_White_Lines("data2_for_each_person")
     # find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
     # find_match_pairs(start=30,end=39,filename="Test_match_labels.csv")
     # find_miss_match_pairs(start=0,end=30,filename="Train_miss_match_labels.csv")
@@ -327,6 +352,6 @@ if __name__ == '__main__':
     # create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 5000, "Train_Labels.csv")
     # create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 2000, "Test_Labels.csv")
     # print('Done. Now you can use the data')
-    # resize_image()
+    #resize_image("data2_for_each_person")
     # new_func('test_labels_try.csv')
-    #rename_newData_files(r"C:\Users\97258\Desktop\data 2",40)
+    # rename_newData_files(r"C:\Users\97258\Desktop\data 2",40)

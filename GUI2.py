@@ -1,30 +1,14 @@
-from ast import Lambda
-
-from cProfile import label
 import multiprocessing
-
-from multiprocessing.dummy import Process
-from pickle import TRUE
-
-from struct import pack
 import tkinter as tk
-
 from tkinter import HORIZONTAL, Frame, PhotoImage, filedialog, messagebox, ttk
-from typing import Text
-
-from matplotlib.pyplot import fill
 import pandas as pd 
-
 import GUI
-import time
-
-from multiprocessing import Queue, Process
+from multiprocessing import Queue
 import threading
 
+
 class MainGUI(Frame):
-
-
-    def __init__(self ,root, *args,**kwargs):
+    def __init__(self ,root):
         Frame.__init__(self, root)
         self.root=root
         self.root.geometry("900x600")
