@@ -167,8 +167,6 @@ if __name__ == '__main__':
         print(f"train epoch: {i}")
         triplet_train(my_model, loss_function, optimizer, train_line_data_loader, loss_history=[], epoch=0)
         print(f'epoch loss: {sum(loss_history_for_epoch) / len(loss_history_for_epoch)}')
-        torch.save(my_model.state_dict(), 'model_triplt.pt')
-        my_model.load_state_dict(torch.load('model_triplt.pt', map_location='cuda:0'))
         print(f"test epoch: {i}")
         test(my_model, test_line_data_loader)
         dict_ = {i: 0 for i in list(np.arange(0.5, 20.5, 0.5))}
