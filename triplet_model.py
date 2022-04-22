@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from data_set import LinesDataSetTriplet, LinesDataSet
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
@@ -7,20 +8,16 @@ from matplotlib import pyplot as plt
 import numpy as np
 class TriplteLoss(nn.Module):
     "Triplet loss function"
-    def __init__(self, margin=1):
+    def __init__(self, margin=3):
         super(TriplteLoss, self).__init__()
         self.margin = margin
-            
+        self.loss_function = nn.MarginRankingLoss(margin=2)
     def forward(self, anc, pos, neg):
-        d_a_p = anc - pos
-        d_a_n = anc - neg
-        d_a_p_sq = torch.sum(torch.pow(d_a_p, 2), 1)
-        d_a_n_sq = torch.sum(torch.pow(d_a_n, 2), 1)
-        d_a_p = torch.sqrt(d_a_p_sq)
-        d_a_n = torch.sqrt(d_a_n_sq)
-        m_dist = torch.clamp(d_a_p - d_a_n + self.margin, min=0.0)
-        loss = torch.sum(m_dist) / anc.size()[0]
-        return loss
+        dist_a_p = F.pairwise_distance(anc, pos, 2)
+        dist_a_n = F.pairwise_distance(anc, neg, 2)
+        target = torch.FloatTensor(dist_a_p.size()).fill_(1)
+        target = target.cuda()
+        return loss_function(dist_a_n, dist_a_p, target)
         
 
 
@@ -137,19 +134,21 @@ def triplet_train( model, loss_function, optimizer,train_loader,loss_history, ep
 def test( model,test_loader):
     model.eval()
     for _ , data in enumerate(test_loader):
-        image1, image2, label = data
+        image1, image2, image3 = data
         image1 = image1.float().cuda()
         image2 = image2.float().cuda()
-        image1 = image1[:,None,:,:]
-        image2 = image2[:,None,:,:]
+        image3 = image3.float().cuda()
+        image1 = image1[:, None, :, :]
+        image2 = image2[:, None, :, :]
+        image3 = image3[:, None, :, :]
         label = label.cuda()
         with torch.no_grad():
-            output = model(image1, image2)
-            dist_ = output[0][0] - output[1][0]
-            dist_ = torch.sum(torch.pow(dist_, 2))
-            dist_ = torch.sqrt(dist_)
-            dist_with_label.append((dist_.cpu(), label.cpu()))
-
+            output = model(image1, image2, image3)
+            dist_a_p = F.pairwise_distance(output[0], output[1], 2)
+            dist_a_n = F.pairwise_distance(output[0], output[2], 2)
+            pred = (dist_a_n - dist_a_p).cpu().data
+            acc_for_batches.append((pred > 0).sum()*1.0/dist_a_p.size()[0])
+        
 
 if __name__ == '__main__':
     train_line_data_set = LinesDataSetTriplet(csv_file="train_triplet.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
@@ -164,10 +163,12 @@ if __name__ == '__main__':
     for i in range(20):
         dist_with_label = []
         loss_history_for_epoch = []
+        acc_for_batches = []
         print(f"train epoch: {i}")
         triplet_train(my_model, loss_function, optimizer, train_line_data_loader, loss_history=[], epoch=0)
         print(f'epoch loss: {sum(loss_history_for_epoch) / len(loss_history_for_epoch)}')
         print(f"test epoch: {i}")
+        print(f"test acc: {(sum(acc_for_batches) / len(acc_for_batches))}")
         test(my_model, test_line_data_loader)
         dict_ = {i: 0 for i in list(np.arange(0.5, 20.5, 0.5))}
         for i in list(np.arange(0.5, 20.5, 0.5)):
