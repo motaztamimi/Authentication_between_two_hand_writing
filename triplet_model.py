@@ -17,7 +17,7 @@ class TriplteLoss(nn.Module):
         dist_a_n = F.pairwise_distance(anc, neg, 2)
         target = torch.FloatTensor(dist_a_p.size()).fill_(1)
         target = target.cuda()
-        return loss_function(dist_a_n, dist_a_p, target)
+        return self.loss_function(dist_a_n, dist_a_p, target)
         
 
 
@@ -134,7 +134,7 @@ def triplet_train( model, loss_function, optimizer,train_loader,loss_history, ep
 def test( model,test_loader):
     model.eval()
     for _ , data in enumerate(test_loader):
-        image1, image2, image3 = data
+        image1, image2, image3, label = data
         image1 = image1.float().cuda()
         image2 = image2.float().cuda()
         image3 = image3.float().cuda()
@@ -146,41 +146,26 @@ def test( model,test_loader):
             output = model(image1, image2, image3)
             dist_a_p = F.pairwise_distance(output[0], output[1], 2)
             dist_a_n = F.pairwise_distance(output[0], output[2], 2)
-            pred = (dist_a_n - dist_a_p).cpu().data
+            pred = (dist_a_n - dist_a_p - 1).cpu().data
             acc_for_batches.append((pred > 0).sum()*1.0/dist_a_p.size()[0])
         
 
 if __name__ == '__main__':
     train_line_data_set = LinesDataSetTriplet(csv_file="train_triplet.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    test_line_data_set = LinesDataSetTriplet(csv_file="test_triplet.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=20)
-    test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
+    test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=20)
     my_model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
     loss_function = TriplteLoss()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
     
     
     for i in range(20):
-        dist_with_label = []
         loss_history_for_epoch = []
         acc_for_batches = []
-        print(f"train epoch: {i}")
+        print(f"train epoch: {i + 1}")
         triplet_train(my_model, loss_function, optimizer, train_line_data_loader, loss_history=[], epoch=0)
         print(f'epoch loss: {sum(loss_history_for_epoch) / len(loss_history_for_epoch)}')
-        print(f"test epoch: {i}")
-        print(f"test acc: {(sum(acc_for_batches) / len(acc_for_batches))}")
+        print(f"test epoch: {i + 1}")
         test(my_model, test_line_data_loader)
-        dict_ = {i: 0 for i in list(np.arange(0.5, 20.5, 0.5))}
-        for i in list(np.arange(0.5, 20.5, 0.5)):
-            for dist, label in dist_with_label:
-                if dist.item() <= i and label.item() == 0.:
-                    dict_[i] += 1
-                elif dist.item() > i and label.item() == 1.:
-                    dict_[i] += 1 
-        print(f"test results: {dict_}")            
-
-
-    
-
-        
-        
+        print(f"test acc: {(sum(acc_for_batches) / len(acc_for_batches))}")          
