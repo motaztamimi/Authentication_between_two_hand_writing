@@ -134,14 +134,13 @@ def triplet_train( model, loss_function, optimizer,train_loader,loss_history, ep
 def test( model,test_loader):
     model.eval()
     for _ , data in enumerate(test_loader):
-        image1, image2, image3, label = data
+        image1, image2, image3 = data
         image1 = image1.float().cuda()
         image2 = image2.float().cuda()
         image3 = image3.float().cuda()
         image1 = image1[:, None, :, :]
         image2 = image2[:, None, :, :]
         image3 = image3[:, None, :, :]
-        label = label.cuda()
         with torch.no_grad():
             output = model(image1, image2, image3)
             dist_a_p = F.pairwise_distance(output[0], output[1], 2)
