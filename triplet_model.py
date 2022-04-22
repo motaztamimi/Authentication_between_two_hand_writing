@@ -145,8 +145,9 @@ def test( model,test_loader):
             output = model(image1, image2, image3)
             dist_a_p = F.pairwise_distance(output[0], output[1], 2)
             dist_a_n = F.pairwise_distance(output[0], output[2], 2)
-            pred = (dist_a_n - dist_a_p - 1).cpu().data
-            acc_for_batches.append((pred > 0).sum()*1.0/dist_a_p.size()[0])
+            for indx, i in enumerate((0, 0.5, 1, 1.5, 2)):
+                pred = (dist_a_n - dist_a_p - i).cpu().data
+                acc_for_batches[indx].append((pred > 0).sum()*1.0/dist_a_p.size()[0])
         
 
 if __name__ == '__main__':
@@ -161,10 +162,11 @@ if __name__ == '__main__':
     
     for i in range(20):
         loss_history_for_epoch = []
-        acc_for_batches = []
+        acc_for_batches = [[] for _ in range(5)]
         print(f"train epoch: {i + 1}")
         triplet_train(my_model, loss_function, optimizer, train_line_data_loader, loss_history=[], epoch=0)
         print(f'epoch loss: {sum(loss_history_for_epoch) / len(loss_history_for_epoch)}')
         print(f"test epoch: {i + 1}")
         test(my_model, test_line_data_loader)
-        print(f"test acc: {(sum(acc_for_batches) / len(acc_for_batches))}")          
+        for indx, i in enumerate((0, 0.5, 1, 1.5, 2)):
+            print(f'test acc with thresh {i}: {100 * sum(acc_for_batches[indx]) /  len(acc_for_batches[indx])}')     
