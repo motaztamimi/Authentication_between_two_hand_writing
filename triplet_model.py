@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from data_set import LinesDataSetTriplet, LinesDataSet
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
@@ -7,20 +8,16 @@ from matplotlib import pyplot as plt
 import numpy as np
 class TriplteLoss(nn.Module):
     "Triplet loss function"
-    def __init__(self, margin=1):
+    def __init__(self, margin=3):
         super(TriplteLoss, self).__init__()
         self.margin = margin
-            
+        self.loss_function = nn.MarginRankingLoss(margin=2)
     def forward(self, anc, pos, neg):
-        d_a_p = anc - pos
-        d_a_n = anc - neg
-        d_a_p_sq = torch.sum(torch.pow(d_a_p, 2), 1)
-        d_a_n_sq = torch.sum(torch.pow(d_a_n, 2), 1)
-        d_a_p = torch.sqrt(d_a_p_sq)
-        d_a_n = torch.sqrt(d_a_n_sq)
-        m_dist = torch.clamp(d_a_p - d_a_n + self.margin, min=0.0)
-        loss = torch.sum(m_dist) / anc.size()[0]
-        return loss
+        dist_a_p = F.pairwise_distance(anc, pos, 2)
+        dist_a_n = F.pairwise_distance(anc, neg, 2)
+        target = torch.FloatTensor(dist_a_p.size()).fill_(1)
+        target = target.cuda()
+        return self.loss_function(dist_a_n, dist_a_p, target)
         
 
 
@@ -56,20 +53,20 @@ class ResidualBlock(nn.Module):
 class ResNet(nn.Module):
     def __init__(self, block, layers, num_classes=2):
         super(ResNet, self).__init__()
-        self.in_channels = 16
-        self.conv = nn.Conv2d(1, 16, kernel_size=3, 
+        self.in_channels = 32
+        self.conv = nn.Conv2d(1, 32, kernel_size=3, 
                      stride=1, padding=0, bias=False)
-        self.bn = nn.BatchNorm2d(16,eps=1e-05)
+        self.bn = nn.BatchNorm2d(32,eps=1e-05)
         self.relu = nn.ReLU(inplace=True)
         self.Max_pol = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
 
-        self.layer1 = self.make_layer(block, 16, layers[0])
-        self.layer2 = self.make_layer(block, 32, layers[1], 2)
-        self.layer3 = self.make_layer(block, 64, layers[2], 2)
+        self.layer1 = self.make_layer(block, 32, layers[0])
+        self.layer2 = self.make_layer(block, 64, layers[1], 2)
+        self.layer3 = self.make_layer(block, 128, layers[2], 2)
         # self.layer4 = self.make_layer(block, 512, layers[3], 2)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Sequential(nn.Linear(64, 32))
-        # self.fc1 = nn.Sequential(nn.Linear(128, num_classes), nn.Sigmoid())
+        self.fc = nn.Sequential(nn.Linear(128, 64), nn.ReLU())
+        self.fc1 = nn.Sequential(nn.Linear(64, 32))
 
     def make_layer(self, block, out_channels, blocks, stride=1):
         downsample = None
@@ -97,7 +94,7 @@ class ResNet(nn.Module):
         out = self.avg_pool(out)
         out = out.view(out.size(0), -1)
         out = self.fc(out)
-        # out = self.fc1(out)
+        out = self.fc1(out)
         return out
 
     def forward(self, input1, input2, input3=None):
@@ -137,49 +134,40 @@ def triplet_train( model, loss_function, optimizer,train_loader,loss_history, ep
 def test( model,test_loader):
     model.eval()
     for _ , data in enumerate(test_loader):
-        image1, image2, label = data
+        image1, image2, image3 = data
         image1 = image1.float().cuda()
         image2 = image2.float().cuda()
-        image1 = image1[:,None,:,:]
-        image2 = image2[:,None,:,:]
-        label = label.cuda()
+        image3 = image3.float().cuda()
+        image1 = image1[:, None, :, :]
+        image2 = image2[:, None, :, :]
+        image3 = image3[:, None, :, :]
         with torch.no_grad():
-            output = model(image1, image2)
-            dist_ = output[0][0] - output[1][0]
-            dist_ = torch.sum(torch.pow(dist_, 2))
-            dist_ = torch.sqrt(dist_)
-            dist_with_label.append((dist_.cpu(), label.cpu()))
-
+            output = model(image1, image2, image3)
+            dist_a_p = F.pairwise_distance(output[0], output[1], 2)
+            dist_a_n = F.pairwise_distance(output[0], output[2], 2)
+            for indx, i in enumerate((0, 0.5, 1, 1.5, 2)):
+                pred = (dist_a_n - dist_a_p - i).cpu().data
+                acc_for_batches[indx].append((pred > 0).sum()*1.0/dist_a_p.size()[0])
+        
 
 if __name__ == '__main__':
     train_line_data_set = LinesDataSetTriplet(csv_file="train_triplet.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    test_line_data_set = LinesDataSetTriplet(csv_file="test_triplet.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=20)
-    test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
+    test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=20)
     my_model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
     loss_function = TriplteLoss()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
     
     
-    for i in range(20):
-        dist_with_label = []
+    for i in range(30):
         loss_history_for_epoch = []
-        print(f"train epoch: {i}")
+        acc_for_batches = [[] for _ in range(5)]
+        print(f"train epoch: {i + 1}")
         triplet_train(my_model, loss_function, optimizer, train_line_data_loader, loss_history=[], epoch=0)
+        torch.save(my_model.state_dict(), f'model_epoch_{i + 1}.pt')
         print(f'epoch loss: {sum(loss_history_for_epoch) / len(loss_history_for_epoch)}')
-        print(f"test epoch: {i}")
+        print(f"test epoch: {i + 1}")
         test(my_model, test_line_data_loader)
-        dict_ = {i: 0 for i in list(np.arange(0.5, 20.5, 0.5))}
-        for i in list(np.arange(0.5, 20.5, 0.5)):
-            for dist, label in dist_with_label:
-                if dist.item() <= i and label.item() == 0.:
-                    dict_[i] += 1
-                elif dist.item() > i and label.item() == 1.:
-                    dict_[i] += 1 
-        print(f"test results: {dict_}")            
-
-
-    
-
-        
-        
+        for indx, i in enumerate((0, 0.5, 1, 1.5, 2)):
+            print(f'test acc with thresh {i}: {100 * sum(acc_for_batches[indx]) /  len(acc_for_batches[indx])}')     
