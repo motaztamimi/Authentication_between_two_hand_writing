@@ -53,20 +53,20 @@ class ResidualBlock(nn.Module):
 class ResNet(nn.Module):
     def __init__(self, block, layers, num_classes=2):
         super(ResNet, self).__init__()
-        self.in_channels = 16
-        self.conv = nn.Conv2d(1, 16, kernel_size=3, 
+        self.in_channels = 32
+        self.conv = nn.Conv2d(1, 32, kernel_size=3, 
                      stride=1, padding=0, bias=False)
-        self.bn = nn.BatchNorm2d(16,eps=1e-05)
+        self.bn = nn.BatchNorm2d(32,eps=1e-05)
         self.relu = nn.ReLU(inplace=True)
         self.Max_pol = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
 
-        self.layer1 = self.make_layer(block, 16, layers[0])
-        self.layer2 = self.make_layer(block, 32, layers[1], 2)
-        self.layer3 = self.make_layer(block, 64, layers[2], 2)
+        self.layer1 = self.make_layer(block, 32, layers[0])
+        self.layer2 = self.make_layer(block, 64, layers[1], 2)
+        self.layer3 = self.make_layer(block, 128, layers[2], 2)
         # self.layer4 = self.make_layer(block, 512, layers[3], 2)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Sequential(nn.Linear(64, 32))
-        # self.fc1 = nn.Sequential(nn.Linear(128, num_classes), nn.Sigmoid())
+        self.fc = nn.Sequential(nn.Linear(128, 64), nn.ReLU())
+        self.fc1 = nn.Sequential(nn.Linear(64, 32))
 
     def make_layer(self, block, out_channels, blocks, stride=1):
         downsample = None
@@ -94,7 +94,7 @@ class ResNet(nn.Module):
         out = self.avg_pool(out)
         out = out.view(out.size(0), -1)
         out = self.fc(out)
-        # out = self.fc1(out)
+        out = self.fc1(out)
         return out
 
     def forward(self, input1, input2, input3=None):
@@ -160,11 +160,12 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
     
     
-    for i in range(20):
+    for i in range(30):
         loss_history_for_epoch = []
         acc_for_batches = [[] for _ in range(5)]
         print(f"train epoch: {i + 1}")
         triplet_train(my_model, loss_function, optimizer, train_line_data_loader, loss_history=[], epoch=0)
+        torch.save(my_model.state_dict(), f'model_epoch_{i + 1}.pt')
         print(f'epoch loss: {sum(loss_history_for_epoch) / len(loss_history_for_epoch)}')
         print(f"test epoch: {i + 1}")
         test(my_model, test_line_data_loader)
