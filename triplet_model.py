@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 class TriplteLoss(nn.Module):
     "Triplet loss function"
-    def __init__(self, margin=3):
+    def __init__(self, margin=2):
         super(TriplteLoss, self).__init__()
         self.margin = margin
         self.loss_function = nn.MarginRankingLoss(margin=2)
