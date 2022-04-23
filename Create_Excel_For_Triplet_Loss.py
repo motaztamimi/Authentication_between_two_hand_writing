@@ -42,6 +42,6 @@ if __name__ == "__main__":
 
     train_file  = pd.read_excel('1-230Arabic.xlsx')
     test_file = pd.read_excel('50D_test_arabic.xlsx')
-    create_csv(train_file, 10000, 'train_triplet.csv')
-    create_csv(test_file, 4000, 'test_triplet.csv')
+    create_csv(train_file, 25000, 'train_triplet.csv')
+    create_csv(test_file, 8000, 'test_triplet.csv')
     
