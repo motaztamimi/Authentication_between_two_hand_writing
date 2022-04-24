@@ -10,10 +10,10 @@ import os
 import pandas as pd
 import random
 import prepare_data
-from way_2_model import Net
+from resnet18 import ResNet18
 import torch
 import torchvision.transforms as transforms
-from data_set import LinesDataSet
+from dataSets.data_set import LinesDataSet
 from torch.utils.data import DataLoader
 import findminmum
 from customResNet import ResNet, ResidualBlock

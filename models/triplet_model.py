@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from data_set import LinesDataSetTriplet
+from dataSets.data_set import LinesDataSetTriplet
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
@@ -109,7 +109,7 @@ class ResNet(nn.Module):
             output = torch.stack((output1, output2))
         return output
 
-def triplet_train( model, loss_function, optimizer,train_loader,loss_history, epoch):
+def triplet_train( model, loss_function, optimizer,train_loader):
     model.train()
     batches_loss = []
     for _ , data in enumerate(train_loader):
@@ -124,15 +124,15 @@ def triplet_train( model, loss_function, optimizer,train_loader,loss_history, ep
         output = model(image1, image2, image3)
         optimizer.zero_grad()
         loss = loss_function(output[0], output[1], output[2])
-        loss_history.append(loss.cpu().item())
         batches_loss.append(loss.cpu().item())
         loss.backward()
         optimizer.step()
         loss_history_for_epoch.append( sum(batches_loss) / len(batches_loss))
 
 
-def test( model,test_loader, train_flag):
+def triplet_test( model,test_loader, train_flag, loss_function):
     model.eval()
+    batches_loss = []
     for _ , data in enumerate(test_loader):
         image1, image2, image3 = data
         image1 = image1.float().cuda()
@@ -143,6 +143,8 @@ def test( model,test_loader, train_flag):
         image3 = image3[:, None, :, :]
         with torch.no_grad():
             output = model(image1, image2, image3)
+            loss = loss_function(output[0], output[1], output[2])
+            batches_loss.append(loss.cpu().item())
             dist_a_p = F.pairwise_distance(output[0], output[1], 2)
             dist_a_n = F.pairwise_distance(output[0], output[2], 2)
             for indx, i in enumerate((0, 0.5, 1, 1.5, 2)):
@@ -151,10 +153,11 @@ def test( model,test_loader, train_flag):
                     acc_for_batches_train[indx].append((pred > 0).sum()*1.0/dist_a_p.size()[0])
                 else:
                     acc_for_batches[indx].append((pred > 0).sum()*1.0/dist_a_p.size()[0])
+                    loss_history_for_epoch_test.append(sum(batches_loss) / len(batches_loss))
         
 
 if __name__ == '__main__':
-    writer = SummaryWriter("runs/custom_resnet_TripletLoss_25K_many_margins")
+    writer = SummaryWriter("runs/custom_resnet_TripletLoss_25K_many_margins_with_weightDecay")
     train_line_data_set = LinesDataSetTriplet(csv_file="train_triplet.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     test_line_data_set = LinesDataSetTriplet(csv_file="test_triplet.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=20)
@@ -164,31 +167,32 @@ if __name__ == '__main__':
     torch.manual_seed(17)
     my_model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
     loss_function = TriplteLoss()
-    optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001, weight_decay=0.0001)
     
     for i in range(30):
         print('epoch number: {}'.format(i + 1))
         loss_history_for_epoch = []
+        loss_history_for_epoch_test = []
         acc_for_batches = [[] for _ in range(5)]
         acc_for_batches_train = [[] for _ in range(5)]
 
-        triplet_train(my_model, loss_function, optimizer, train_line_data_loader, loss_history=[], epoch=0)
-        writer.add_scalar("train_loss",(sum(loss_history_for_epoch) / len(loss_history_for_epoch)),i)
+        triplet_train(my_model, loss_function, optimizer, train_line_data_loader)
         torch.save(my_model.state_dict(), f'model_epoch_{i + 1}.pt')
         print(f'epoch loss: {sum(loss_history_for_epoch) / len(loss_history_for_epoch)}')
 
         print('Testing on Train Data_set...')
-        test(my_model, train_line_data_loader_for_test, train_flag = True)
+        triplet_test(my_model, train_line_data_loader_for_test, train_flag=True, loss_function=loss_function)
         for index , i1 in enumerate((0, 0.5, 1, 1.5, 2)):
             print(f"train_acc_{i1}: ",100* (sum(acc_for_batches_train[index]) /  len(acc_for_batches_train[index])) )
         writer.add_scalars("train_acc",{str(value) : (sum(acc_for_batches_train[indx]) /  len(acc_for_batches_train[indx])) for indx, value in enumerate((0, 0.5, 1, 1.5, 2))},i)
 
         print('Testing on Test Data_set...')
-        test(my_model, test_line_data_loader, train_flag= False)    
+        triplet_test(my_model, test_line_data_loader, train_flag=False, loss_function=loss_function)    
         for index1 , i2 in enumerate((0, 0.5, 1, 1.5, 2)):
-            print(f"train_acc_{i2}: ",100* (sum(acc_for_batches[index1]) /  len(acc_for_batches[index1])) )
+            print(f"test_acc{i2}: ",100* (sum(acc_for_batches[index1]) /  len(acc_for_batches[index1])) )
         writer.add_scalars("test_acc",{str(value) : (100*(sum(acc_for_batches[indx]) /  len(acc_for_batches[indx]))) for indx, value in enumerate((0, 0.5, 1, 1.5, 2))},i)
-    
+
+        writer.add_scalars("losses",{"train_loss": (sum(loss_history_for_epoch) / len(loss_history_for_epoch)), 'test_loss': (sum(loss_history_for_epoch_test) / len(loss_history_for_epoch_test))},i)
     
     writer.close()
 

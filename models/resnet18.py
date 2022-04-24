@@ -3,9 +3,9 @@ import torch
 import torchvision
 
 
-class Net(nn.Module):
+class ResNet18(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
+        super(ResNet18, self).__init__()
         self.cnn = torchvision.models.resnet18(pretrained = False)
         self.cnn.conv1 = torch.nn.Conv2d(1, 64, 3, bias=False)
         num_features = self.cnn.fc.in_features

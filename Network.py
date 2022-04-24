@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader,Dataset
 import matplotlib.pyplot as plt
 import os
 import numpy as np
-from data_set import LinesDataSet
+from dataSets.data_set import LinesDataSet
 
 class ContrastiveLoss(nn.Module):
     "Contrastive loss function"

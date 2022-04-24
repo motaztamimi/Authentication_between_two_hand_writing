@@ -7,8 +7,8 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
-from data_set import LinesDataSet
-from way_2_model import Net
+from dataSets.data_set import LinesDataSet
+from resnet18 import ResNet18
 import numpy as np
 import seaborn as sn
 import pandas as pd
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         all_acc_test = []
         all_acc_train = []
         my_model = ResNet(ResidualBlock, [2, 2, 2])
-        #my_model = Net()
+        #my_model = ResNet18()
         if k==0:
             # my_model.load_state_dict(torch.load('model_0.pt', map_location='cuda:0'))
             pass

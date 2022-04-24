@@ -1,10 +1,5 @@
 import torch
 import torch.nn as nn
-import torchvision
-import torchvision.transforms as transforms
-from data_set import LinesDataSet
-from torch.utils.data import DataLoader
-from way_2_model import Net
 
 def conv3x3(in_channels, out_channels, stride=1, padding=1, kernel_size=3):
     return nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, 
@@ -89,14 +84,5 @@ class ResNet(nn.Module):
         V_ = torch.cat((output1, output2, dist_, h_), dim=1)
         output = self.fc1(V_)
         return output
-
-
-if __name__ == '__main__':
-    # model  = torchvision.models.resnet18(pretrained = False)
-    # print(model)
-    model = ResNet(ResidualBlock, [2, 2, 2])
-    print(model)           
-    # my_model = Net()
-    # print(my_model)
 
 
