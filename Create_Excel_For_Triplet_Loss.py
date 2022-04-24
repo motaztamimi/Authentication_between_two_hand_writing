@@ -25,14 +25,14 @@ def create_csv(file, len_, file_name):
             ancor[col1] = ancor_row
         else:
             ancor_row = ancor[col1]
-        toadd.append(file.iat[row1, col1])
         toadd.append(file.iat[ancor_row, col1])
+        toadd.append(file.iat[row1, col1])
         toadd.append(file.iat[row2, col2])
         counter = to_return.count(toadd)
         if counter == 0:
             to_return.append(toadd)
     csv_file = pd.DataFrame(to_return)
-    headerr = ["positive","Ancor", "Negative"]
+    headerr = ["Ancor","positive", "Negative"]
     csv_file = csv_file.sample(frac=1)
     csv_file.to_csv(file_name,
                         index=False, sep=',', header=headerr)
@@ -42,6 +42,6 @@ if __name__ == "__main__":
 
     train_file  = pd.read_excel('1-230Arabic.xlsx')
     test_file = pd.read_excel('50D_test_arabic.xlsx')
-    create_csv(train_file, 10000, 'train_triplet.csv')
-    create_csv(test_file, 4000, 'test_triplet.csv')
+    create_csv(train_file, 25000, 'train_triplet.csv')
+    create_csv(test_file, 8000, 'test_triplet.csv')
     
