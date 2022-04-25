@@ -8,10 +8,10 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 
-class TriplteLoss(nn.Module):
+class TripletLoss(nn.Module):
     "Triplet loss function"
     def __init__(self, margin=2):
-        super(TriplteLoss, self).__init__()
+        super(TripletLoss, self).__init__()
         self.margin = margin
         self.loss_function = nn.MarginRankingLoss(margin=2)
     def forward(self, anc, pos, neg):
@@ -166,7 +166,7 @@ if __name__ == '__main__':
 
     torch.manual_seed(17)
     my_model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
-    loss_function = TriplteLoss()
+    loss_function = TripletLoss()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001, weight_decay=0.0001)
     
     for i in range(30):

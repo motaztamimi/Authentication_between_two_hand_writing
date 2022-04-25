@@ -4,7 +4,7 @@ import pandas as pd
 import random
 import os
 from PIL import Image
-from prepare_data import create_label_file
+from dataManpiulation.prepare_data import create_label_file
 def find_match_pairs(file, len_, file_name):
     max_col = file.columns.size
     to_return = []

@@ -1,6 +1,6 @@
-import detection_function
+from dataManpiulation import detection_function
 import cv2
-import prepare_doc
+from dataManpiulation import prepare_doc
 from PIL import Image
 import os
 import numpy as np
