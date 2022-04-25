@@ -1,10 +1,15 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from dataSets.data_set import LinesDataSetTriplet
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
+import sys
+import os
 from torch.utils.tensorboard import SummaryWriter
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+from dataSets.data_set import LinesDataSet, LinesDataSetTriplet
+
 
 
 
@@ -157,9 +162,9 @@ def triplet_test( model,test_loader, train_flag, loss_function):
         
 
 if __name__ == '__main__':
-    writer = SummaryWriter("runs/custom_resnet_TripletLoss_25K_many_margins_with_weightDecay")
-    train_line_data_set = LinesDataSetTriplet(csv_file="train_triplet.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    test_line_data_set = LinesDataSetTriplet(csv_file="test_triplet.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    writer = SummaryWriter("../runs/custom_resnet_TripletLoss_25K_many_margins_with_weightDecay_testing")
+    train_line_data_set = LinesDataSetTriplet(csv_file="../train_triplet.csv", root_dir="../data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    test_line_data_set = LinesDataSetTriplet(csv_file="../test_triplet.csv", root_dir='../data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=20)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=20)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=20)
