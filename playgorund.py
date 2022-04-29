@@ -1,11 +1,22 @@
+import torch
 
 
 
 
+a = torch.tensor([[-1.0], 
+                  [-1.0],
+                  [1.0],
+                  [1.0],  
+                    ])
+label = torch.tensor([
+    [0.0],
+    [1.0],
+    [0.0],
+    [0.0]
+])
+acc = []
 
-from time import sleep
-from traceback import print_tb
+acc.append(( (( a > 0 )[label == 1.0].sum() + (a < 0)[label == 0.0].sum())/ 4).data.item())
 
+print(acc)
 
-list_of_lists = { i: i+1 for i in range(10)}
-print(list_of_lists)

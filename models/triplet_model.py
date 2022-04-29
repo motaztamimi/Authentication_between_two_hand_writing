@@ -15,10 +15,10 @@ from dataSets.data_set import LinesDataSet, LinesDataSetTriplet
 
 class TripletLoss(nn.Module):
     "Triplet loss function"
-    def __init__(self, margin=2):
+    def __init__(self, margin=3):
         super(TripletLoss, self).__init__()
         self.margin = margin
-        self.loss_function = nn.MarginRankingLoss(margin=2)
+        self.loss_function = nn.MarginRankingLoss(margin=self.margin)
     def forward(self, anc, pos, neg):
         dist_a_p = F.pairwise_distance(anc, pos, 2)
         dist_a_n = F.pairwise_distance(anc, neg, 2)
@@ -114,7 +114,7 @@ class ResNet(nn.Module):
             output = torch.stack((output1, output2))
         return output
 
-def triplet_train( model, loss_function, optimizer,train_loader):
+def triplet_train(model, loss_function, optimizer,train_loader):
     model.train()
     batches_loss = []
     for _ , data in enumerate(train_loader):
@@ -135,7 +135,7 @@ def triplet_train( model, loss_function, optimizer,train_loader):
         loss_history_for_epoch.append( sum(batches_loss) / len(batches_loss))
 
 
-def triplet_test( model,test_loader, train_flag, loss_function):
+def triplet_test(model,test_loader, train_flag, loss_function):
     model.eval()
     batches_loss = []
     for _ , data in enumerate(test_loader):
@@ -162,7 +162,7 @@ def triplet_test( model,test_loader, train_flag, loss_function):
         
 
 if __name__ == '__main__':
-    writer = SummaryWriter("../runs/custom_resnet_TripletLoss_25K_many_margins_arabic_without_weight_decay_pretrained_on_hebrew")
+    writer = SummaryWriter("../runs/custom_resnet_TripletLoss_25K_many_margins_arabic_without_weight_decay_margin3")
     train_line_data_set = LinesDataSetTriplet(csv_file="../train_arabic__triplet.csv", root_dir="../data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     test_line_data_set = LinesDataSetTriplet(csv_file="../test_arabic_triplet.csv", root_dir='../data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=20)
@@ -173,18 +173,13 @@ if __name__ == '__main__':
     my_model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
     loss_function = TripletLoss()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
-    my_model.load_state_dict(torch.load(r"C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_TripletLoss_25K_many_margins_hebrew_without_weight_decay\model_epoch_30.pt", map_location='cuda:0'))
+    # my_model.load_state_dict(torch.load(r"C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_TripletLoss_25K_many_margins_hebrew_without_weight_decay\model_epoch_30.pt", map_location='cuda:0'))
     for i in range(30):
         print('epoch number: {}'.format(i + 1))
         loss_history_for_epoch = []
         loss_history_for_epoch_test = []
         acc_for_batches = [[] for _ in range(5)]
         acc_for_batches_train = [[] for _ in range(5)]
-        # !55
-        
-        #char *  p
-        #for ( 0, lenght3; c++)
-        # *p+c = *string+postion -1 
         triplet_train(my_model, loss_function, optimizer, train_line_data_loader)
         torch.save(my_model.state_dict(), f'../model_epoch_{i + 1}.pt')
         print(f'epoch loss: {sum(loss_history_for_epoch) / len(loss_history_for_epoch)}')

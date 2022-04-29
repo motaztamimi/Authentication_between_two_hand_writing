@@ -28,14 +28,15 @@ def create_miss_match_csv_triplet(file, len_, file_name):
         toadd.append(file.iat[ancor_row, col1])
         toadd.append(file.iat[row1, col1])
         toadd.append(file.iat[row2, col2])
+        toadd.append(1)
         counter = to_return.count(toadd)
         if counter == 0:
             to_return.append(toadd)
     csv_file = pd.DataFrame(to_return)
-    headerr = ["Ancor","positive", "Negative"]
+    # headerr = ["Ancor","positive", "Negative", "Label"]
     csv_file = csv_file.sample(frac=1)
     csv_file.to_csv(file_name,
-                        index=False, sep=',', header=headerr)
+                        index=False, sep=',')
 
 def create_match_csv_triplet(file, len_, file_name):
     max_col = file.columns.size
@@ -62,14 +63,15 @@ def create_match_csv_triplet(file, len_, file_name):
         toadd.append(file.iat[ancor_row, col1])
         toadd.append(file.iat[row1, col1])
         toadd.append(file.iat[row2, col1])
+        toadd.append(0)
         counter = to_return.count(toadd)
         if counter == 0:
             to_return.append(toadd)
     csv_file = pd.DataFrame(to_return)
-    headerr = ["Ancor","positive", "Negative"]
+    # headerr = ["Ancor","positive", "Negative", "Label"]
     csv_file = csv_file.sample(frac=1)
     csv_file.to_csv(file_name,
-                        index=False, sep=',', header=headerr)
+                        index=False, sep=',')
 
 
 if __name__ == "__main__":
