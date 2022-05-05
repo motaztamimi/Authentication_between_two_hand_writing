@@ -38,6 +38,6 @@ if __name__ == '__main__':
     my_model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
     test_line_data_set = LinesDataSetTripletWithLabel(csv_file="../test_labels_for_arabic_triplet.csv", root_dir='../data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=20)
-    my_model.load_state_dict(torch.load(r"C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_TripletLoss_25K_many_margins_weight_decay\model_epoch_25.pt", map_location='cuda:0'))
-    for i in np.linspace(1, 5, num=50, endpoint=True):
+    my_model.load_state_dict(torch.load(r"../model_epoch_20.pt", map_location='cuda:0'))
+    for i in np.linspace(5, 10, num=50, endpoint=True):
         test(my_model, test_line_data_loader, i)
