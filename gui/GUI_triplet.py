@@ -72,7 +72,8 @@ def test(model, test_loader, acc_history, thresh):
             dist_a_n = F.pairwise_distance(output[0], output[2], 2)
             pred = (dist_a_n - dist_a_p - thresh).cpu().data
             pred = pred.reshape(pred.size()[0], 1)
-            acc.append(( ((pred > 0 )[label == 1.0].sum() + (pred <= 0)[label == 0.0].sum())/ dist_a_p.size()[0]).data.item())
+            acc.append(( ( (pred <= 0).sum())/ dist_a_p.size()[0]).data.item())
+            
             acc_history.append(acc[0])
             acc = []  
     return acc_history
@@ -81,6 +82,7 @@ def test(model, test_loader, acc_history, thresh):
 def testing(filename1 ,model_path):
     
     acc_history = []
+    acc_history_miss = []
     acc_history_std =[]
     acc_history_median =[]
     model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
@@ -88,13 +90,15 @@ def testing(filename1 ,model_path):
     test_line_data_loader = DataLoader(test_data_set, shuffle=False, batch_size=30)
     torch.manual_seed(17)
     model.load_state_dict(torch.load(model_path, map_location = 'cuda:0'))
-    test(model, test_line_data_loader, acc_history=acc_history, thresh =5)
+    test(model, test_line_data_loader, acc_history=acc_history, thresh =2)
     print(acc_history)
+    print(acc_history_miss)
+    
     return acc_history , acc_history_std, acc_history_median
 
 
 
-def find_match_pairs_for_two_writer_triplet(path = "../Motaz_for_each_Person",person = -1,person2 = -1,miss_match_flag = False, person1_ancor = -1,Label = 0) :
+def find_match_pairs_for_two_writer_triplet(path = "../Motaz_for_each_Person",person = -1,person2 = -1,miss_match_flag = False, person1_ancor = -1,Label = 0,full_batch= False) :
     """this function find match pairs and miss match pairs for 2 or 1 person  
     miss_match_flag : True if we want to finnd miss match between to writer 
     """
@@ -146,11 +150,20 @@ def find_match_pairs_for_two_writer_triplet(path = "../Motaz_for_each_Person",pe
                     negative_file_name = "p{}_L_{}.jpeg".format(person, negative_row)
                     negative_file_to_search = dir_name + '/' + dir_to_search + '/' +negative_file_name
                 negattive_path = dir_to_search + '/' +negative_file_name
+            
             to_add.append(Ancor_path)
             to_add.append(positive_path)
             to_add.append(negattive_path)
             to_add.append(Label)
             genuin_data.append(to_add)
+            if full_batch:
+                to_add = []
+                to_add.append(Ancor_path)
+                to_add.append(positive_path)
+                to_add.append(negattive_path)
+                to_add.append(Label)
+                full_batch= False
+                genuin_data.append(to_add)
         csv_file = pd.DataFrame(genuin_data)
         csv_file = csv_file.sample(frac=1)
         if miss_match_flag:
@@ -181,7 +194,7 @@ def looping_into_excel(Excel_file,model_path):
         #name file excel
         filename1 = "../match_Label.csv"
         #find match pairs for the first person
-        first_csv, person1_ancor = find_match_pairs_for_two_writer_triplet(person = first_file_number)
+        first_csv, person1_ancor = find_match_pairs_for_two_writer_triplet(person = first_file_number,full_batch = True)
         #find match pairs for the second person
         second_csv, person2_ancor  = find_match_pairs_for_two_writer_triplet(person = second_file_number)
         #concat the result to excel file
@@ -196,7 +209,6 @@ def looping_into_excel(Excel_file,model_path):
         print("Start testing")
       
         results , result_std , result_median= testing(filename1=filename1,model_path=model_path)
-        
         toadd.append(first_file)
         toadd.append(second_file)
 
