@@ -1,7 +1,6 @@
 
 import pandas as pd
 import random
-from prepare_data import create_label_file
 
 def create_miss_match_csv_triplet(file, len_, file_name):
     max_col = file.columns.size
@@ -79,11 +78,6 @@ if __name__ == "__main__":
     train_file  = pd.read_excel('../1-230Arabic.xlsx')
     test_file = pd.read_excel('../50D_test_arabic.xlsx')
     
-    create_miss_match_csv_triplet(train_file, 12500, '../train_arabic_mismatch_triplet.csv')
-    create_match_csv_triplet(train_file,12500,'../train_arabic_match_triplet.csv')
-    
-    create_miss_match_csv_triplet(test_file, 4000, '../test_arabic_mismatch_triplet.csv')
-    create_match_csv_triplet(train_file,4000,'../test_arabic_match_triplet.csv')
+    create_miss_match_csv_triplet(train_file, 25000, '../train_labels_for_arabic_triplet.csv')
+    create_miss_match_csv_triplet(test_file, 8000, '../test_labels_for_arabic_triplet.csv')
 
-    create_label_file('../train_arabic_mismatch_triplet.csv', '../train_arabic_match_triplet.csv', 12500, '../train_labels_for_arabic_triplet.csv')
-    create_label_file('../test_arabic_mismatch_triplet.csv', '../test_arabic_match_triplet.csv', 4000, '../test_labels_for_arabic_triplet.csv')

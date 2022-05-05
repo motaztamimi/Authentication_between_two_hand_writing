@@ -186,7 +186,7 @@ def looping_into_excel(Excel_file,model_path):
         #take the first cell extract the name of the file
         first_file=Excel_file.loc[i][0]
         #take the second cell extract the name of the file
-        second_file=Excel_file.loc[i][1]
+        second_file=Excel_file.loc[i][1] 
         # print(first_file + "," + second_file)     
         first_file_number = first_file.split(".")[0]
         second_file_number = second_file.split(".")[0]
@@ -279,8 +279,8 @@ def main_test(test_file, model_path):
 def testing_excel(excel_path, data_path):
     print("Starting reading excel file")
     test_file = pd.read_excel(excel_path)
-    # detect_liness(test_file,data_path)
-    main_test(test_file=test_file,model_path=r"C:\Users\97258\Desktop\model_epoch_20.pt")
+    detect_liness(test_file,data_path)
+    main_test(test_file=test_file,model_path=r"C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_TripletLoss_25K_many_margins_weight_decay\model_epoch_20.pt")
     # return excel_fil 
 
 
@@ -292,7 +292,7 @@ def creating_excel_for_testing_3(excel_file1,excel_file2):
     max_row = file1.shape[0]
     excel_ = []
     num = []
-    for i in range(test_file.shape[0]):
+    for i in range(test_file.shape[0]+50):
         toadd=[]
         randoom = random.randint(1,max_row-1)
         while randoom in num:
@@ -344,10 +344,27 @@ def create_excel_for_testing(excel_file):
     main_excel.to_excel("../testing.xlsx",index=False,header=headerr)
     return 
 
+def create_excel_for_testing4(excel_file):
+    test_file = pd.read_excel(excel_file,header=None,)
+    max_row = test_file.shape[0]
+    excel_ =[]
+    for i in range(0,max_row,2):
+        toadd = []
+        left_writer =  test_file.iloc[i][0]
+        number = left_writer.split("-")[0]
+        writer = number+"-b.tiff"
+        toadd.append(left_writer)
+        toadd.append(writer)
+        excel_.append(toadd)
+    main_excel = pd.DataFrame(excel_)
+    headerr = ["first","second"]
+    main_excel.to_excel("../testing4.xlsx",index=False,header=headerr)
+
 
 if __name__ == "__main__":
-    testing_excel("../testing3.xlsx", r"C:\Users\97258\Desktop\Motaz")
+    testing_excel("../testing3.xlsx", r"C:\Users\FinalProject\Desktop\Motaz")
     # excel_file, mean_avg = update_excel("final1.xlsx")
-    # create_excel_for_testing(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
-    # creating_excel_for_testing_2(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
+    # create_excel_for_testing(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
+    # creating_excel_for_testing_2(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
     # creating_excel_for_testing_3("../testing.xlsx","../testing2.xlsx")    
+    # create_excel_for_testing4(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")

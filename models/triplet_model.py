@@ -8,7 +8,7 @@ import os
 from torch.utils.tensorboard import SummaryWriter
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
-from dataSets.data_set import LinesDataSet, LinesDataSetTriplet
+from dataSets.data_set import LinesDataSetTriplet
 
 
 
@@ -162,9 +162,9 @@ def triplet_test(model,test_loader, train_flag, loss_function):
         
 
 if __name__ == '__main__':
-    writer = SummaryWriter("../runs/custom_resnet_TripletLoss_25K_many_margins_arabic_without_weight_decay_margin3")
-    train_line_data_set = LinesDataSetTriplet(csv_file="../train_arabic__triplet.csv", root_dir="../data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    test_line_data_set = LinesDataSetTriplet(csv_file="../test_arabic_triplet.csv", root_dir='../data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    writer = SummaryWriter("../runs/custom_resnet_TripletLoss_25K_margin_3")
+    train_line_data_set = LinesDataSetTriplet(csv_file="../train_labels_for_arabic_triplet.csv", root_dir="../data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    test_line_data_set = LinesDataSetTriplet(csv_file="../test_labels_for_arabic_triplet.csv", root_dir='../data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=20)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=20)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=20)
