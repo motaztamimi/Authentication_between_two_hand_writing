@@ -1,8 +1,12 @@
-import detection_function
-import cv2
-import prepare_doc
-from PIL import Image
+import sys
 import os
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+import dataManpiulation.detection_function as detection_function
+import cv2
+import dataManpiulation.prepare_doc as prepare_doc
+from PIL import Image
 import numpy as np
 import pandas as pd
 import random

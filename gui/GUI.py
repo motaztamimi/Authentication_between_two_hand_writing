@@ -3,20 +3,21 @@ from statistics import median
 from unittest import result
 from cv2 import mean
 from numpy import std
-import detection_function
+import dataManpiulation.detection_function as detection_function
 import cv2
 from PIL import Image
 import os
 import pandas as pd
 import random
-import prepare_data
-from resnet18 import ResNet18
+import dataManpiulation.prepare_data as prepare_data
+# from resnet18 import ResNet18
 import torch
 import torchvision.transforms as transforms
 from dataSets.data_set import LinesDataSet
 from torch.utils.data import DataLoader
-import findminmum
-from customResNet import ResNet, ResidualBlock
+import dataManpiulation.findminmum as findminmum
+
+# from customResNet import ResNet, ResidualBlock
 Proc_step=0
 
 def update_excel(excel_file):
@@ -300,7 +301,7 @@ def looping_into_excel(Excel_file,model_path,que,que2):
 def testing_excel(excel_path, data_path,que,que2):
     print("Starting reading excel file")
     test_file = pd.read_excel(excel_path)
-    #detect_lines(test_file,data_path)
+    detect_lines(test_file,data_path)
     excel_fil,median_avg, mean_avg=main_test(test_file=test_file,model_path=r"C:\Users\97258\Desktop\custom_resnet\custom_ResNet_without_reg_writers_on_arabic_with_weight_decay_pre_trained\model_0_epoch_30.pt",que=que,que2=que2)
     return excel_fil
 
@@ -320,7 +321,7 @@ def creating_excel_for_testing_3(excel_file1,excel_file2):
     max_row = file1.shape[0]
     excel_ = []
     num = []
-    for i in range(test_file.shape[0]+2000):
+    for i in range(test_file.shape[0]):
         toadd=[]
         randoom = random.randint(1,max_row-1)
         while randoom in num:
@@ -335,7 +336,7 @@ def creating_excel_for_testing_3(excel_file1,excel_file2):
     headerr = ["first","second"]
 
     main_excel=pd.concat([test_file,exceell],ignore_index=False)
-    main_excel.to_excel("testing3.xlsx",index=False, header=headerr)
+    main_excel.to_excel("../testing3.xlsx",index=False, header=headerr)
 
 
 def creating_excel_for_testing_2(excel_file):
@@ -354,7 +355,7 @@ def creating_excel_for_testing_2(excel_file):
                 excel_.append(toadd)
     main_excel = pd.DataFrame(excel_)
     headerr = ["first","second"]
-    main_excel.to_excel("testing2.xlsx",index=False,header=headerr)
+    main_excel.to_excel("../testing2.xlsx",index=False,header=headerr)
 
 
 def create_excel_for_testing(excel_file):
@@ -369,7 +370,7 @@ def create_excel_for_testing(excel_file):
         excel_.append(toadd)
     main_excel = pd.DataFrame(excel_)
     headerr = ["first","second"]
-    main_excel.to_excel("testing.xlsx",index=False,header=headerr)
+    main_excel.to_excel("../testing.xlsx",index=False,header=headerr)
     return 
 
 
@@ -389,6 +390,6 @@ def median_mean_test():
     headerr = ['step','median','mean']
     excell.to_excel('mustafa.xlsx',index=False,header=headerr)
 
-# create_excel_for_testing(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
-# creating_excel_for_testing_2(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
-# creating_excel_for_testing_3("testing.xlsx","testing2.xlsx")
+create_excel_for_testing(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
+creating_excel_for_testing_2(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
+creating_excel_for_testing_3("testing.xlsx","testing2.xlsx")
