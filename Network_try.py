@@ -1,4 +1,3 @@
-from cv2 import transform
 import torch
 import torch.nn as nn
 import torchvision
@@ -8,11 +7,10 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
 from dataSets.data_set import LinesDataSet
-from resnet18 import ResNet18
-import numpy as np
+from models.resnet18 import ResNet18
 import seaborn as sn
 import pandas as pd
-from customResNet import ResNet, ResidualBlock
+from models.customResNet import ResNet, ResidualBlock
 from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
@@ -171,7 +169,6 @@ if __name__ == "__main__":
             print('creating confusion_matrix')
 
 
-            # test_for_confusion_matrix(my_model, test_line_data_loader)
             cf_matrix = confusion_matrix(y_true, y_pred)
             classes = ('0', '1')
             df_cm = pd.DataFrame(cf_matrix / 8000, index = [i for i in classes],
