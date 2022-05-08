@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
 import torchvision
+import numpy as np
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 from sklearn.metrics import confusion_matrix
 from dataSets.data_set import LinesDataSet
-from models.resnet18 import ResNet18
 import seaborn as sn
 import pandas as pd
 from models.customResNet import ResNet, ResidualBlock
@@ -55,13 +55,14 @@ def test ( model,test_loader, acc_history, train_flag):
         label = label.cuda()
         with torch.no_grad():
             output = model(image1, image2)
-            predeict_= torch.argmax(output)
-            y_pred.append(predeict_.cpu().item())
-            y_true.append(label.cpu().item())
-            if predeict_.item() == label.item():
-                acc_history.append(1)
-            else:
-                acc_history.append(0)
+            predeict_= torch.argmax(output, dim=1).cpu().data
+            predeict_as_list = predeict_.tolist()
+            label_as_list = list(map(lambda x:int(x[0]), label.cpu().data.tolist()))
+            y_pred.extend(predeict_as_list)
+            y_true.extend(label_as_list)
+            acc_history.append(sum((np.array(predeict_as_list) == np.array(label_as_list))))
+            acc_history.append(sum((np.array(predeict_as_list) != np.array(label_as_list))))
+            return
     
     print('test acc: {}'.format(sum(acc_history) / len(acc_history)))
     if train_flag:
@@ -87,12 +88,12 @@ def test_for_confusion_matrix(model, test_loader):
 
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs/custom_resnet_with_reg_writers_on_hebrew_with_weight_decay_64_vector_with_learing_rate_decaye')
-    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_hebrew.csv", root_dir="data2_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_hebrew.csv", root_dir='data2_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    writer_ = SummaryWriter('runs/debug')
+    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_arabic.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
-    test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=1)
-    train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=1)
+    test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=17)
+    train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
 
     # just a simple example
     example = iter(train_line_data_loader)
@@ -104,7 +105,7 @@ if __name__ == "__main__":
     for k in range(0, 4, 4):
         torch.manual_seed(17)
 
-        loss_function = nn.MSELoss()
+        loss_function = nn.CrossEntropyLoss()
 
         loss_history = []
         loss_history_for_ephoces = []
@@ -113,7 +114,7 @@ if __name__ == "__main__":
         my_model = ResNet(ResidualBlock, [2, 2, 2])
         #my_model = ResNet18()
         if k==0:
-            # my_model.load_state_dict(torch.load('model_0.pt', map_location='cuda:0'))
+            my_model.load_state_dict(torch.load('model_0_epoch_1.pt', map_location='cuda:0'))
             pass
 
         if k == 1:
@@ -145,12 +146,12 @@ if __name__ == "__main__":
         epoches = 30
         for i in range(epoches):
 
-            print('epoch number: {}'.format(i + 1))
-            train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
-            writer_.add_scalar('train_loss_{}'.format(k), loss_history_for_ephoces[i], i)
-            print('epoch loss: {}'.format(loss_history_for_ephoces[i]))
+            # print('epoch number: {}'.format(i + 1))
+            # train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
+            # writer_.add_scalar('train_loss_{}'.format(k), loss_history_for_ephoces[i], i)
+            # print('epoch loss: {}'.format(loss_history_for_ephoces[i]))
 
-            torch.save(my_model.state_dict(), 'model_{}_epoch_{}.pt'.format(k,i+1))
+            # torch.save(my_model.state_dict(), 'model_{}_epoch_{}.pt'.format(k,i+1))
 
             y_pred = []
             y_true = []
