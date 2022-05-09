@@ -46,6 +46,7 @@ def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
 
 def test ( model,test_loader, acc_history, train_flag):
     model.eval()
+    batches_loss = []
     for _ , data in enumerate(test_loader):
         image1, image2, label = data
         image1 = image1.float().cuda()
@@ -55,15 +56,24 @@ def test ( model,test_loader, acc_history, train_flag):
         label = label.cuda()
         with torch.no_grad():
             output = model(image1, image2)
+            new_label = torch.empty((label.shape[0], 2)).float().cuda()
+            for i in range(label.shape[0]):
+                if label[i].item() == 1.:
+                    new_label[i][0] = 0.
+                    new_label[i][1] = 1.
+                if label[i].item() == 0.:
+                    new_label[i][0] = 1.
+                    new_label[i][1] = 0.
+            loss = loss_function(output, new_label)
             predeict_= torch.argmax(output, dim=1).cpu().data
             predeict_as_list = predeict_.tolist()
             label_as_list = list(map(lambda x:int(x[0]), label.cpu().data.tolist()))
+            batches_loss.append(loss.cpu().item())
             y_pred.extend(predeict_as_list)
             y_true.extend(label_as_list)
             acc_history.append(sum((np.array(predeict_as_list) == np.array(label_as_list))))
             acc_history.append(sum((np.array(predeict_as_list) != np.array(label_as_list))))
-            return
-    
+                
     print('test acc: {}'.format(sum(acc_history) / len(acc_history)))
     if train_flag:
         all_acc_train.append(sum(acc_history) / len(acc_history))
@@ -88,7 +98,7 @@ def test_for_confusion_matrix(model, test_loader):
 
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs/debug')
+    writer_ = SummaryWriter('runs/custom_resnet_without_reg_writers_on_arabic_CrossEntropy')
     train_line_data_set = LinesDataSet(csv_file="Train_labels_for_arabic.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
@@ -109,6 +119,7 @@ if __name__ == "__main__":
 
         loss_history = []
         loss_history_for_ephoces = []
+        loss_history_for_epoch_test = []
         all_acc_test = []
         all_acc_train = []
         my_model = ResNet(ResidualBlock, [2, 2, 2])
@@ -146,10 +157,9 @@ if __name__ == "__main__":
         epoches = 30
         for i in range(epoches):
 
-            # print('epoch number: {}'.format(i + 1))
-            # train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
-            # writer_.add_scalar('train_loss_{}'.format(k), loss_history_for_ephoces[i], i)
-            # print('epoch loss: {}'.format(loss_history_for_ephoces[i]))
+            print('epoch number: {}'.format(i + 1))
+            train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
+            print('epoch loss: {}'.format(loss_history_for_ephoces[i]))
 
             # torch.save(my_model.state_dict(), 'model_{}_epoch_{}.pt'.format(k,i+1))
 
@@ -168,7 +178,7 @@ if __name__ == "__main__":
             writer_.add_scalar('test_acc_{}'.format(k), all_acc_test[i], i)
 
             print('creating confusion_matrix')
-
+            writer_.add_scalars("losses",{"train_loss": loss_history_for_ephoces[i] , 'test_loss': loss_history_for_epoch_test[i]},i)
 
             cf_matrix = confusion_matrix(y_true, y_pred)
             classes = ('0', '1')

@@ -5,9 +5,7 @@ import random
 import os
 import sys
 from PIL import Image
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
-from dataManpiulation.prepare_data import create_label_file
+from prepare_data import create_label_file
 def find_match_pairs(file, len_, file_name):
     max_col = file.columns.size
     to_return = []
@@ -118,6 +116,6 @@ if __name__ == '__main__':
     find_miss_match_pairs(test_file, 4000, '../miss_match_labels_from_arabic_for_test.csv')
     find_miss_match_pairs(train_file, 12500, '../miss_match_labels_from_arabic_for_train.csv')
 
-    create_label_file('../match_labels_from_arabic_for_test.csv', '../miss_match_labels_from_arabic_for_test.csv', 100, '../Test_labels_for_arabic.csv')
-    create_label_file('../match_labels_from_arabic_for_train.csv', '../miss_match_labels_from_arabic_for_train.csv', 500, '../Train_labels_for_arabic.csv')
+    create_label_file('../match_labels_from_arabic_for_test.csv', '../miss_match_labels_from_arabic_for_test.csv', 4000, '../Test_labels_for_arabic.csv')
+    create_label_file('../match_labels_from_arabic_for_train.csv', '../miss_match_labels_from_arabic_for_train.csv', 12500, '../Train_labels_for_arabic.csv')
     

@@ -1,22 +1,17 @@
+from re import S
 import torch
+thresh=1
 
 
+def a():
+  global thresh
+  thresh+= 1
+  print(thresh)
+  
 
 
-a = torch.tensor([[-1.0], 
-                  [-1.0],
-                  [1.0],
-                  [1.0],  
-                    ])
-label = torch.tensor([
-    [0.0],
-    [1.0],
-    [0.0],
-    [0.0]
-])
-acc = []
+if __name__ == "__main__":
 
-acc.append(( (( a > 0 )[label == 1.0].sum() + (a < 0)[label == 0.0].sum())/ 4).data.item())
-
-print(acc)
-
+  ss="person_242/p242_a_L_6.jpeg"
+  a = "b" in ss
+  print(a)

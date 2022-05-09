@@ -15,7 +15,8 @@ import torch.nn.functional as F
 
 from PIL import Image
 from dataSets.data_set import LinesDataSetTripletWithLabel
-from models.triplet_model import ResidualBlock , ResNet
+from models.triplet_model import ResidualBlock , ResNet, ResNet18
+global thresh1
 
 def update_excel(excel_file):
     test_file = pd.read_excel(excel_file)
@@ -39,12 +40,12 @@ def update_excel(excel_file):
     arr1 =[]
     for indx , _ in enumerate(test_file['all2']):
         if test_file['firstt'][indx] == test_file['secondd'][indx]:
-            if test_file['all2'][indx] >= 0.5:
+            if test_file['pfs'][indx] >= 0.30:
                 arr1.append(1)
             else:
                 arr1.append(0)
         else:
-            if test_file['all2'][indx] > 0.5:
+            if test_file['pfs'][indx] > 0.30:
                 arr1.append(0)
             else:
                 arr1.append(1)
@@ -54,9 +55,11 @@ def update_excel(excel_file):
     test_file.to_csv("final_GUI.csv")
     return "final_GUI.csv" ,test_file['result2'].mean() 
 
+
 def test(model, test_loader, acc_history, thresh):
     model.eval()
     acc  = []
+    # print(thresh)
     for _, data in enumerate(test_loader):
         image1, image2, image3, label = data
         image1 = image1.float().cuda()
@@ -82,20 +85,18 @@ def test(model, test_loader, acc_history, thresh):
 def testing(filename1 ,model_path):
     
     acc_history = []
-    acc_history_miss = []
     acc_history_std =[]
     acc_history_median =[]
-    model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
+    #model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
+    model = ResNet18().cuda()
     test_data_set = LinesDataSetTripletWithLabel(filename1, '../Motaz_for_each_Person', transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,),(0.5,))]))
     test_line_data_loader = DataLoader(test_data_set, shuffle=False, batch_size=30)
     torch.manual_seed(17)
     model.load_state_dict(torch.load(model_path, map_location = 'cuda:0'))
-    test(model, test_line_data_loader, acc_history=acc_history, thresh =2)
-    print(acc_history)
-    print(acc_history_miss)
+    test(model, test_line_data_loader, acc_history=acc_history, thresh =1.5)
+    # print(acc_history)
     
     return acc_history , acc_history_std, acc_history_median
-
 
 
 def find_match_pairs_for_two_writer_triplet(path = "../Motaz_for_each_Person",person = -1,person2 = -1,miss_match_flag = False, person1_ancor = -1,Label = 0,full_batch= False) :
@@ -171,14 +172,13 @@ def find_match_pairs_for_two_writer_triplet(path = "../Motaz_for_each_Person",pe
         return csv_file, Ancor_row
 
 
-
-def looping_into_excel(Excel_file,model_path):
+def looping_into_excel(Excel_file,model_path,que,que2):
     excel_file=[]
     resultss= []
     csv_file = pd.DataFrame(excel_file)
     max_rows=Excel_file.shape[0]
     for i in range(max_rows):
-        # que.put(i+1)
+        que.put(i+1)
         excel_file=[]
         toadd=[]
         #create data frame 
@@ -190,7 +190,7 @@ def looping_into_excel(Excel_file,model_path):
         # print(first_file + "," + second_file)     
         first_file_number = first_file.split(".")[0]
         second_file_number = second_file.split(".")[0]
-        print(first_file , ", " , second_file)
+        # print(first_file , ", " , second_file)
         #name file excel
         filename1 = "../match_Label.csv"
         #find match pairs for the first person
@@ -206,7 +206,7 @@ def looping_into_excel(Excel_file,model_path):
         csv_file = pd.concat([csv_file,third_csv])
         csv_file = pd.concat([csv_file,second_csv])
         csv_file.to_csv(filename1,index=False, sep=',', header=0)
-        print("Start testing")
+        # print("Start testing")
       
         results , result_std , result_median= testing(filename1=filename1,model_path=model_path)
         toadd.append(first_file)
@@ -223,12 +223,13 @@ def looping_into_excel(Excel_file,model_path):
         toadd.append(results[2])
         # toadd.append(result_std[2])
         # toadd.append(result_median[2])
-        # que2.put(toadd)
+        que2.put(toadd)
         resultss.append(toadd)
     main_Excel = pd.DataFrame(resultss)
     headerr= ["first","second","pfirst","pfs","psecond"]
     main_Excel.to_excel("final1.xlsx",index=False,header=headerr)
     return "final1.xlsx"
+
 
 def creating_lines_for_each_file(path='../data1_as_one_page',path_1="../data_for_each_person"):
     
@@ -269,22 +270,24 @@ def detect_liness(Excel_file,datapath):
     print(count)   
     resize_image("../Motaz_for_each_Person")
 
-def main_test(test_file, model_path):
-    excel =looping_into_excel(test_file,model_path=model_path)
+
+def main_test(test_file, model_path,que,que2):
+    excel =looping_into_excel(test_file,model_path=model_path,que=que,que2=que2)
     excel_file, mean_avg = update_excel(excel)
     # print( median_avg, mean_avg)
     # return excel_file,median_avg, mean_avg
-    pass
+    return mean_avg
 
-def testing_excel(excel_path, data_path):
+
+def testing_excel(excel_path, data_path,que,que2):
     print("Starting reading excel file")
     test_file = pd.read_excel(excel_path)
-    detect_liness(test_file,data_path)
-    main_test(test_file=test_file,model_path=r"C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_TripletLoss_25K_many_margins_weight_decay\model_epoch_20.pt")
+    #detect_liness(test_file,data_path)
+    main_test(test_file=test_file,model_path=r"C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_TripletLoss_25K_margin_2_with_new_data_sample_resnet18\model_epoch_22.pt",que=que,que2=que2)
     # return excel_fil 
 
-
 def creating_excel_for_testing_3(excel_file1,excel_file2):
+    """merge between match and miss_match"""
     test_file = pd.read_excel(excel_file1,skiprows=1,header=None)
     print(test_file)
     file1 = pd.read_excel(excel_file2,skiprows=1,header=None)
@@ -311,6 +314,7 @@ def creating_excel_for_testing_3(excel_file1,excel_file2):
 
 
 def creating_excel_for_testing_2(excel_file):
+    """all the options in excel"""
     test_file = pd.read_excel(excel_file,header=None)
     max_row = test_file.shape[0]
     excel_ = []
@@ -330,6 +334,7 @@ def creating_excel_for_testing_2(excel_file):
 
 
 def create_excel_for_testing(excel_file):
+    """match pairs excel"""
     test_file = pd.read_excel(excel_file,header=None,)
     max_row = test_file.shape[0]
     excel_ =[]
@@ -343,6 +348,7 @@ def create_excel_for_testing(excel_file):
     headerr = ["first","second"]
     main_excel.to_excel("../testing.xlsx",index=False,header=headerr)
     return 
+
 
 def create_excel_for_testing4(excel_file):
     test_file = pd.read_excel(excel_file,header=None,)
@@ -361,10 +367,37 @@ def create_excel_for_testing4(excel_file):
     main_excel.to_excel("../testing4.xlsx",index=False,header=headerr)
 
 
+def median_mean_test():
+    test_file = pd.read_excel("../testing3.xlsx")
+#  testing_excel("../testing3.xlsx", r"C:\Users\FinalProject\Desktop\Motaz")
+    for th in (1,1.5,2):
+        global thresh1
+        thresh1 = th
+        result1 =[]
+
+        print(thresh1)
+        for i in range(0,30):
+            print("epoch",i+1)
+            to_add =[]
+            model_path = r'../model_epoch_{}.pt'.format(i+1)
+            mean_avg= main_test(test_file=test_file,model_path=model_path)
+            print(mean_avg)
+            to_add.append(i+1)
+            to_add.append(mean_avg)
+            result1.append(to_add)
+        excell= pd.DataFrame(result1)
+        headerr = ['step','mean']
+        name = "test_acc_{}.xlsx".format(th)
+        excell.to_excel(name,index=False,header=headerr)
+
+
 if __name__ == "__main__":
-    testing_excel("../testing3.xlsx", r"C:\Users\FinalProject\Desktop\Motaz")
+    # testing_excel("../testing3.xlsx", r"C:\Users\FinalProject\Desktop\Motaz")
     # excel_file, mean_avg = update_excel("final1.xlsx")
     # create_excel_for_testing(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
     # creating_excel_for_testing_2(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
     # creating_excel_for_testing_3("../testing.xlsx","../testing2.xlsx")    
     # create_excel_for_testing4(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
+    # median_mean_test()
+    # i move the model to backup folder need to rewrite the path 
+    pass

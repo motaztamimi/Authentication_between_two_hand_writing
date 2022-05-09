@@ -1,8 +1,9 @@
 
 import pandas as pd
 import random
-
+from prepare_data import create_label_file
 def create_miss_match_csv_triplet(file, len_, file_name):
+    # must the ancor be from a  and positive from b writer 
     max_col = file.columns.size
     ancor = {}
     to_return = []
@@ -17,10 +18,16 @@ def create_miss_match_csv_triplet(file, len_, file_name):
         max_row1 = file.iat[0, col1]
         max_row2 = file.iat[0, col2]
         row1 = random.randint(1, max_row1)
+        while "b" not in file.iat[row1, col1]:
+            row1 = random.randint(1, max_row1)
+
+
         row2 = random.randint(1, max_row2)
         ancor_row = ""
         if  col1 not in ancor:
             ancor_row = random.randint(1, max_row1)
+            while "a" not in file.iat[ancor_row, col1]:
+                ancor_row = random.randint(1, max_row1)
             ancor[col1] = ancor_row
         else:
             ancor_row = ancor[col1]
@@ -48,12 +55,14 @@ def create_match_csv_triplet(file, len_, file_name):
         ancor_row = ""
         if  col1 not in ancor:
             ancor_row = random.randint(1, max_row1)
+            while "a" not in file.iat[ancor_row, col1]:
+                ancor_row = random.randint(1, max_row1)
             ancor[col1] = ancor_row
         else:
             ancor_row = ancor[col1]
         
         row1 = random.randint(1, max_row1)
-        while row1 == ancor_row:
+        while row1 == ancor_row or "b" not in file.iat[row1, col1]:
             row1 = random.randint(1, max_row1)
         row2 = random.randint(1, max_row1)
         while row1 == row2 or row2 == ancor_row:
@@ -80,4 +89,5 @@ if __name__ == "__main__":
     
     create_miss_match_csv_triplet(train_file, 25000, '../train_labels_for_arabic_triplet.csv')
     create_miss_match_csv_triplet(test_file, 8000, '../test_labels_for_arabic_triplet.csv')
-
+    # create_match_csv_triplet(test_file, 4000, '../test_labels_match_for_arabic_triplet.csv')
+    # create_label_file('../test_labels_miss_match_for_arabic_triplet.csv', '../test_labels_match_for_arabic_triplet.csv', 8000, '../test_labels_for_arabic_triplet.csv')

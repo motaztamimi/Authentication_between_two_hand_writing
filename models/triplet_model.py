@@ -5,6 +5,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 import sys
 import os
+import torchvision
 from torch.utils.tensorboard import SummaryWriter
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
@@ -12,10 +13,9 @@ from dataSets.data_set import LinesDataSetTriplet
 
 
 
-
 class TripletLoss(nn.Module):
     "Triplet loss function"
-    def __init__(self, margin=3):
+    def __init__(self, margin=1):
         super(TripletLoss, self).__init__()
         self.margin = margin
         self.loss_function = nn.MarginRankingLoss(margin=self.margin)
@@ -26,7 +26,6 @@ class TripletLoss(nn.Module):
         target = target.cuda()
         return self.loss_function(dist_a_n, dist_a_p, target)
         
-
 
 def conv3x3(in_channels, out_channels, stride=1, padding=1, kernel_size=3):
     return nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, 
@@ -114,6 +113,28 @@ class ResNet(nn.Module):
             output = torch.stack((output1, output2))
         return output
 
+
+class ResNet18(nn.Module):
+    def __init__(self):
+        super(ResNet18, self).__init__()
+        self.cnn = torchvision.models.resnet18(pretrained = False)
+        self.cnn.conv1 = torch.nn.Conv2d(1, 64, 3, bias=False)
+        num_features = self.cnn.fc.in_features
+        self.cnn.fc = nn.Sequential(nn.Linear(num_features, 200), nn.ReLU())
+        self.fc1 = nn.Sequential(nn.Linear(200, 128))
+    def forward_once(self, x):
+        output = self.cnn(x)
+        output = self.fc1(output)
+        return output
+
+    def forward(self, input1, input2, input3):
+        output1 = self.forward_once(input1)
+        output2 = self.forward_once(input2)
+        output3 = self.forward_once(input3)
+        output = torch.stack((output1, output2, output3))
+        return output
+
+ 
 def triplet_train(model, loss_function, optimizer,train_loader):
     model.train()
     batches_loss = []
@@ -162,15 +183,16 @@ def triplet_test(model,test_loader, train_flag, loss_function):
         
 
 if __name__ == '__main__':
-    writer = SummaryWriter("../runs/custom_resnet_TripletLoss_25K_margin_3")
+    writer = SummaryWriter("../runs/custom_resnet_TripletLoss_25K_margin_1_with_new_data_sample")
     train_line_data_set = LinesDataSetTriplet(csv_file="../train_labels_for_arabic_triplet.csv", root_dir="../data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     test_line_data_set = LinesDataSetTriplet(csv_file="../test_labels_for_arabic_triplet.csv", root_dir='../data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=20)
-    test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=20)
-    train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=20)
+    train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=15)
+    test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=15)
+    train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=15)
 
     torch.manual_seed(17)
     my_model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
+    #my_model = ResNet18().cuda()
     loss_function = TripletLoss()
     optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
     # my_model.load_state_dict(torch.load(r"C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_TripletLoss_25K_many_margins_hebrew_without_weight_decay\model_epoch_30.pt", map_location='cuda:0'))

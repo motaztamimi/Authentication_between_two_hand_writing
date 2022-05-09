@@ -2,12 +2,13 @@ import multiprocessing
 import tkinter as tk
 from tkinter import HORIZONTAL, Frame, PhotoImage, filedialog, messagebox, ttk
 import pandas as pd 
-import GUI
+import GUI_triplet
 from multiprocessing import Queue
 import threading
 
-
 class MainGUI(Frame):
+    
+
     def __init__(self ,root):
         Frame.__init__(self, root)
         self.root=root
@@ -17,7 +18,7 @@ class MainGUI(Frame):
         self.root.pack_propagate(False)
         self.root.resizable(0,0)
         #LOGO IMG
-        self.Logo_Image = PhotoImage(file=r"C:\Users\97258\Desktop\download.png")
+        self.Logo_Image = PhotoImage(file=r"C:\Users\FinalProject\Desktop\download.png")
         self.Logo_label = tk.Label(self.root,image=self.Logo_Image)
         self.Logo_label.place(x=530,y=400)
         # EXCEL TABLE
@@ -132,12 +133,12 @@ class MainGUI(Frame):
     def work(self):
         print(" in test")
         self.clear_data()
-        self.tv1["column"] = ["first","second","pfirst","pfirst_std","pfirst_median","pfs","pfs_std","pfs_median","psecond","psecond_std","psecond_median" ]
+        self.tv1["column"] = ["first","second","pfirst","pfs","psecond"]
         self.tv1["show"] = "headings"
         for colum in self.tv1["column"]:
             self.tv1.heading(colum, text = colum)
  
-        p = multiprocessing.Process(target= GUI.testing_excel,args=(self.excel_path ,self.data_path, self.queue,self.queue2))
+        p = multiprocessing.Process(target= GUI_triplet.testing_excel,args=(self.excel_path ,self.data_path, self.queue,self.queue2))
         p.start()
         q = threading.Thread(target=self.keyy )
         q.start()
