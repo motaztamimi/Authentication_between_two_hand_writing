@@ -88,6 +88,6 @@ if __name__ == "__main__":
     test_file = pd.read_excel('../50D_test_arabic.xlsx')
     
     create_miss_match_csv_triplet(train_file, 25000, '../train_labels_for_arabic_triplet.csv')
-    create_miss_match_csv_triplet(test_file, 8000, '../test_labels_for_arabic_triplet.csv')
-    # create_match_csv_triplet(test_file, 4000, '../test_labels_match_for_arabic_triplet.csv')
-    # create_label_file('../test_labels_miss_match_for_arabic_triplet.csv', '../test_labels_match_for_arabic_triplet.csv', 8000, '../test_labels_for_arabic_triplet.csv')
+    create_miss_match_csv_triplet(test_file, 4001, '../test_labels_miss_match_for_arabic_triplet.csv')
+    create_match_csv_triplet(test_file, 4001, '../test_labels_match_for_arabic_triplet.csv')
+    create_label_file('../test_labels_miss_match_for_arabic_triplet.csv', '../test_labels_match_for_arabic_triplet.csv', 4001, '../test_labels_for_arabic_triplet.csv')

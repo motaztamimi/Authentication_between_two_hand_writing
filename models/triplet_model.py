@@ -3,19 +3,24 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sn
+import pandas as pd
 import sys
 import os
 import torchvision
+import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
-from dataSets.data_set import LinesDataSetTriplet
+from dataSets.data_set import LinesDataSetTriplet, LinesDataSetTripletWithLabel
 
 
 
 class TripletLoss(nn.Module):
     "Triplet loss function"
-    def __init__(self, margin=1):
+    def __init__(self, margin=2):
         super(TripletLoss, self).__init__()
         self.margin = margin
         self.loss_function = nn.MarginRankingLoss(margin=self.margin)
@@ -139,7 +144,7 @@ def triplet_train(model, loss_function, optimizer,train_loader):
     model.train()
     batches_loss = []
     for _ , data in enumerate(train_loader):
-        image1, image2, image3 = data
+        image1, image2, image3, _ = data
         image1 = image1.float().cuda()
         image2 = image2.float().cuda()
         image3 = image3.float().cuda()
@@ -156,14 +161,15 @@ def triplet_train(model, loss_function, optimizer,train_loader):
         loss_history_for_epoch.append( sum(batches_loss) / len(batches_loss))
 
 
-def triplet_test(model,test_loader, train_flag, loss_function):
+def triplet_test(model,test_loader, train_flag, loss_function, y_pred=None, y_true=None):
     model.eval()
     batches_loss = []
     for _ , data in enumerate(test_loader):
-        image1, image2, image3 = data
+        image1, image2, image3, label = data
         image1 = image1.float().cuda()
         image2 = image2.float().cuda()
         image3 = image3.float().cuda()
+        label  = label.cuda()
         image1 = image1[:, None, :, :]
         image2 = image2[:, None, :, :]
         image3 = image3[:, None, :, :]
@@ -178,14 +184,19 @@ def triplet_test(model,test_loader, train_flag, loss_function):
                 if train_flag:
                     acc_for_batches_train[indx].append(((pred > 0).sum()*1.0/dist_a_p.size()[0]).item())
                 else:
-                    acc_for_batches[indx].append(((pred > 0).sum()*1.0/dist_a_p.size()[0]).item())
+                    label_as_list = list(map(lambda x:int(x[0]), label.cpu().data.tolist()))
+                    predeict_as_list = pred.tolist()
+                    y_pred[indx].extend(np.where(np.array(predeict_as_list) > 0, 1, 0))
+                    y_true[indx].extend(label_as_list)
+                    acc_to_add = (sum((np.array(predeict_as_list) > 0) == np.array(label_as_list)) / dist_a_p.size()[0]) 
+                    acc_for_batches[indx].append(acc_to_add)
                     loss_history_for_epoch_test.append(sum(batches_loss) / len(batches_loss))
         
 
 if __name__ == '__main__':
-    writer = SummaryWriter("../runs/custom_resnet_TripletLoss_25K_margin_1_with_new_data_sample")
-    train_line_data_set = LinesDataSetTriplet(csv_file="../train_labels_for_arabic_triplet.csv", root_dir="../data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    test_line_data_set = LinesDataSetTriplet(csv_file="../test_labels_for_arabic_triplet.csv", root_dir='../data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    writer = SummaryWriter("../runs/debug")
+    train_line_data_set = LinesDataSetTripletWithLabel(csv_file="../train_labels_for_arabic_triplet.csv", root_dir="../data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    test_line_data_set = LinesDataSetTripletWithLabel(csv_file="../test_labels_for_arabic_triplet.csv", root_dir='../data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=15)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=15)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=15)
@@ -202,23 +213,34 @@ if __name__ == '__main__':
         loss_history_for_epoch_test = []
         acc_for_batches = [[] for _ in range(5)]
         acc_for_batches_train = [[] for _ in range(5)]
+        y_pred = [[] for _ in range(5)]
+        y_true = [[] for _ in range(5)]
         triplet_train(my_model, loss_function, optimizer, train_line_data_loader)
         torch.save(my_model.state_dict(), f'../model_epoch_{i + 1}.pt')
         print(f'epoch loss: {sum(loss_history_for_epoch) / len(loss_history_for_epoch)}')
 
         print('Testing on Train Data_set...')
-        triplet_test(my_model, train_line_data_loader_for_test, train_flag=True, loss_function=loss_function)
+        triplet_test(my_model, train_line_data_loader_for_test, train_flag=True, loss_function=loss_function, y_true=y_true, y_pred=y_pred)
         for index , i1 in enumerate((0, 0.5, 1, 1.5, 2)):
             print(f"train_acc_{i1}: ",100* (sum(acc_for_batches_train[index]) /  len(acc_for_batches_train[index])) )
         writer.add_scalars("train_acc",{str(value) : (sum(acc_for_batches_train[indx]) /  len(acc_for_batches_train[indx])) for indx, value in enumerate((0, 0.5, 1, 1.5, 2))},i)
 
         print('Testing on Test Data_set...')
-        triplet_test(my_model, test_line_data_loader, train_flag=False, loss_function=loss_function)    
+        triplet_test(my_model, test_line_data_loader, train_flag=False, loss_function=loss_function, y_true=y_true, y_pred=y_pred)    
         for index1 , i2 in enumerate((0, 0.5, 1, 1.5, 2)):
             print(f"test_acc{i2}: ",100* (sum(acc_for_batches[index1]) /  len(acc_for_batches[index1])) )
+            cf_matrix = confusion_matrix(y_true[index1], y_pred[index1])
+            classes = ('0', '1')
+            df_cm = pd.DataFrame(cf_matrix / 8000, index = [i for i in classes],
+                        columns = [i for i in classes])
+            plt.figure(figsize = (12,7))
+            writer.add_figure('confusion_matrix_thresh_{}'.format(i2), sn.heatmap(df_cm, annot=True).get_figure(), i)
+
         writer.add_scalars("test_acc",{str(value) : (100*(sum(acc_for_batches[indx]) /  len(acc_for_batches[indx]))) for indx, value in enumerate((0, 0.5, 1, 1.5, 2))},i)
 
         writer.add_scalars("losses",{"train_loss": (sum(loss_history_for_epoch) / len(loss_history_for_epoch)), 'test_loss': (sum(loss_history_for_epoch_test) / len(loss_history_for_epoch_test))},i)
-    
+
+
+        
     writer.close()
 
