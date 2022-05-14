@@ -71,14 +71,13 @@ def test ( model,test_loader, acc_history, train_flag):
             batches_loss.append(loss.cpu().item())
             y_pred.extend(predeict_as_list)
             y_true.extend(label_as_list)
-            acc_history.append(sum((np.array(predeict_as_list) == np.array(label_as_list))))
-            acc_history.append(sum((np.array(predeict_as_list) != np.array(label_as_list))))
-                
+            acc_history.append(sum((np.array(predeict_as_list) == np.array(label_as_list))) / len(predeict_as_list))
     print('test acc: {}'.format(sum(acc_history) / len(acc_history)))
     if train_flag:
         all_acc_train.append(sum(acc_history) / len(acc_history))
     else:
         all_acc_test.append(sum(acc_history) / len(acc_history))
+        loss_history_for_epoch_test.append(sum(batches_loss) / len(batches_loss))
             
 def test_for_confusion_matrix(model, test_loader):
     model.eval()
@@ -98,9 +97,9 @@ def test_for_confusion_matrix(model, test_loader):
 
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs/custom_resnet_without_reg_writers_on_arabic_CrossEntropy')
-    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_arabic.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    writer_ = SummaryWriter('runs/custom_resnet_without_reg_writers_on_hebrew_CrossEntropy_without_weight_decay')
+    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_hebrew.csv", root_dir="data2_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_hebrew.csv", root_dir='data2_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=17)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
@@ -125,7 +124,7 @@ if __name__ == "__main__":
         my_model = ResNet(ResidualBlock, [2, 2, 2])
         #my_model = ResNet18()
         if k==0:
-            my_model.load_state_dict(torch.load('model_0_epoch_1.pt', map_location='cuda:0'))
+            # my_model.load_state_dict(torch.load('model_0_epoch_1.pt', map_location='cuda:0'))
             pass
 
         if k == 1:
@@ -149,7 +148,7 @@ if __name__ == "__main__":
 
 
         my_model = my_model.cuda()
-        optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001, weight_decay=0.0001)
+        optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
         scheduler = ReduceLROnPlateau(optimizer, 'min', patience = 2, verbose=True)
         writer_.add_graph(my_model.cuda(), (example_img1, example_img2))
 
@@ -161,7 +160,7 @@ if __name__ == "__main__":
             train(my_model, loss_function, optimizer, train_line_data_loader, loss_history, i + 1)
             print('epoch loss: {}'.format(loss_history_for_ephoces[i]))
 
-            # torch.save(my_model.state_dict(), 'model_{}_epoch_{}.pt'.format(k,i+1))
+            torch.save(my_model.state_dict(), 'model_{}_epoch_{}.pt'.format(k,i+1))
 
             y_pred = []
             y_true = []

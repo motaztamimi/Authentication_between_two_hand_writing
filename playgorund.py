@@ -1,17 +1,12 @@
-from re import S
+from itertools import count
 import torch
-thresh=1
+import numpy as np
 
-
-def a():
-  global thresh
-  thresh+= 1
-  print(thresh)
-  
 
 
 if __name__ == "__main__":
+  a = np.array([1, -1, -1, -1])
+  b = np.array([1, 1, 0, 0])
 
-  ss="person_242/p242_a_L_6.jpeg"
-  a = "b" in ss
-  print(a)
+  result = a > 0
+  print(sum((result == b)))
