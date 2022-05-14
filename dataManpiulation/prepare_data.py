@@ -6,6 +6,7 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 import dataManpiulation.detection_function as detection_function
 import cv2
 import dataManpiulation.prepare_doc as prepare_doc
+from findminmum import find_min
 from PIL import Image
 import numpy as np
 import pandas as pd
@@ -143,7 +144,7 @@ def find_miss_match_pairs_two_writer(path='data_for_two_person',person1 = 1, per
         print('Done.')
         return csv_file
 
-def from_two_pages_to_jpeg(data_path,folder="data1_as_one_page"):
+def from_two_pages_to_jpeg(data_path,folder="../data1_as_one_page"):
 
     if not os.path.exists(folder):
         os.mkdir(folder)
@@ -152,7 +153,7 @@ def from_two_pages_to_jpeg(data_path,folder="data1_as_one_page"):
     print('Done.')
 
 #this function just for hebrew data
-def creating_lines_for_each_person_hebrew(path='data2_as_one_page',path_1="data2_for_each_person"):
+def creating_lines_for_each_person_hebrew(path='../data2_as_one_page',path_1="../data2_for_each_person"):
 
     if os.path.exists(path):
 
@@ -346,9 +347,24 @@ def rename_newData_files(path, start_number):
 
 
 if __name__ == '__main__':
-    print('Starting the preparing phase...')
-    # from_two_pages_to_jpeg(r"C:\Users\FinalProject\Desktop\hebrew data","data2_as_one_page")
-    # Delete_White_Lines("data2_for_each_person")
+    # print('Starting the preparing phase...')
+    
+    # ------------------------------------------------------------------------------------#
+    #                       FOR CREATING HEBREW DATA                                      #
+    #-------------------------------------------------------------------------------------#
+    # from_two_pages_to_jpeg(r"C:\Users\97258\Desktop\hebrew_data","../data2_as_one_page")
+    # creating_lines_for_each_person_hebrew()
+    # Delete_White_Lines("../data2_for_each_person")
+    # count =0
+    # min = 1
+    # while min < 55:
+    #    min = find_min("../data2_for_each_person")
+    #    count+=1
+    # print(count)
+    #  resize_image("../data2_for_each_person") 
+    # ------------------------------------------------------------------------------------#
+    #                       Finish CREATING HEBREW DATA                                   #
+    #-------------------------------------------------------------------------------------# 
     # find_match_pairs(start=0,end=30,filename="Train_match_labels.csv")
     # find_match_pairs(start=30,end=39,filename="Test_match_labels.csv")
     # find_miss_match_pairs(start=0,end=30,filename="Train_miss_match_labels.csv")
@@ -356,6 +372,7 @@ if __name__ == '__main__':
     # create_label_file('Train_match_labels.csv', 'Train_miss_match_labels.csv', 5000, "Train_Labels.csv")
     # create_label_file('Test_match_labels.csv', 'Test_miss_match_labels.csv', 2000, "Test_Labels.csv")
     # print('Done. Now you can use the data')
-    #resize_image("data2_for_each_person")
+    # resize_image("../data2_for_each_person") 
     # new_func('test_labels_try.csv')
     # rename_newData_files(r"C:\Users\97258\Desktop\data 2",40)
+    pass
