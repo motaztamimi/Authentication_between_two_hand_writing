@@ -60,7 +60,8 @@ def test ( model,test_loader, acc_history, train_flag):
             
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs/BCE/debug')
+    writer_ = SummaryWriter('runs/BCE/debug/0.0001')
+    
     train_line_data_set = LinesDataSet(csv_file="Train_labels_for_arabic.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
@@ -111,7 +112,7 @@ if __name__ == "__main__":
 
 
         my_model = my_model.cuda()
-        optimizer = torch.optim.Adam(my_model.parameters(), lr=0.0003)
+        optimizer = torch.optim.Adam(my_model.parameters(), lr=0.0001)
         # scheduler = ReduceLROnPlateau(optimizer, 'min', patience = 2, verbose=True)
         writer_.add_graph(my_model.cuda(), (example_img1, example_img2))
 
