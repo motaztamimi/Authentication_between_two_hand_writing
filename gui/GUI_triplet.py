@@ -15,6 +15,7 @@ import torch.nn.functional as F
 
 from PIL import Image
 from dataSets.data_set import LinesDataSetTripletWithLabel
+from multiprocessing import Queue
 from models.triplet_model import ResidualBlock , ResNet, ResNet18
 global thresh1
 
@@ -87,8 +88,8 @@ def testing(filename1 ,model_path):
     acc_history = []
     acc_history_std =[]
     acc_history_median =[]
-    #model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
-    model = ResNet18().cuda()
+    model = ResNet(ResidualBlock, [2, 2, 2]).cuda()
+    #model = ResNet18().cuda()
     test_data_set = LinesDataSetTripletWithLabel(filename1, '../Motaz_for_each_Person', transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,),(0.5,))]))
     test_line_data_loader = DataLoader(test_data_set, shuffle=False, batch_size=30)
     torch.manual_seed(17)
@@ -283,7 +284,7 @@ def testing_excel(excel_path, data_path,que,que2):
     print("Starting reading excel file")
     test_file = pd.read_excel(excel_path)
     #detect_liness(test_file,data_path)
-    main_test(test_file=test_file,model_path=r"C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_TripletLoss_25K_margin_2_with_new_data_sample_resnet18\model_epoch_22.pt",que=que,que2=que2)
+    main_test(test_file=test_file,model_path=r"C:\Users\FinalProject\Desktop\excel_final_result\custom_resnet_TripletLoss_25K_margin_2_with_new_data_sample\model_epoch_19.pt",que=que,que2=que2)
     # return excel_fil 
 
 def creating_excel_for_testing_3(excel_file1,excel_file2):
@@ -335,7 +336,7 @@ def creating_excel_for_testing_2(excel_file):
 
 def create_excel_for_testing(excel_file):
     """match pairs excel"""
-    test_file = pd.read_excel(excel_file,header=None,)
+    test_file = pd.read_excel(excel_file,header=None)
     max_row = test_file.shape[0]
     excel_ =[]
     for i in range(0,max_row,1):
@@ -351,7 +352,7 @@ def create_excel_for_testing(excel_file):
 
 
 def create_excel_for_testing4(excel_file):
-    test_file = pd.read_excel(excel_file,header=None,)
+    test_file = pd.read_excel(excel_file,header=None)
     max_row = test_file.shape[0]
     excel_ =[]
     for i in range(0,max_row,2):
@@ -368,27 +369,24 @@ def create_excel_for_testing4(excel_file):
 
 
 def median_mean_test():
+    que1 = Queue()
+    que2 = Queue()
     test_file = pd.read_excel("../testing3.xlsx")
 #  testing_excel("../testing3.xlsx", r"C:\Users\FinalProject\Desktop\Motaz")
-    for th in (1,1.5,2):
-        global thresh1
-        thresh1 = th
-        result1 =[]
-
-        print(thresh1)
-        for i in range(0,30):
-            print("epoch",i+1)
-            to_add =[]
-            model_path = r'../model_epoch_{}.pt'.format(i+1)
-            mean_avg= main_test(test_file=test_file,model_path=model_path)
-            print(mean_avg)
-            to_add.append(i+1)
-            to_add.append(mean_avg)
-            result1.append(to_add)
-        excell= pd.DataFrame(result1)
-        headerr = ['step','mean']
-        name = "test_acc_{}.xlsx".format(th)
-        excell.to_excel(name,index=False,header=headerr)
+    result1 = []
+    for i in range(0,30):
+        print("epoch",i+1)
+        to_add =[]
+        model_path = r'C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_hebrew_25K_without_WD\model_epoch_{}.pt'.format(i+1)
+        mean_avg= main_test(test_file=test_file,model_path=model_path,que=que1 , que2=que2)
+        print(mean_avg)
+        to_add.append(i+1)
+        to_add.append(mean_avg)
+        result1.append(to_add)
+    excell= pd.DataFrame(result1)
+    headerr = ['step','mean']
+    name = "test_acc_mean.xlsx"
+    excell.to_excel(name,index=False,header=headerr)
 
 
 if __name__ == "__main__":

@@ -183,6 +183,7 @@ def triplet_test(model,test_loader, train_flag, loss_function, y_pred=None, y_tr
                 pred = (dist_a_n - dist_a_p - i).cpu().data
                 if train_flag:
                     acc_for_batches_train[indx].append(((pred > 0).sum()*1.0/dist_a_p.size()[0]).item())
+                    loss_history_for_epoch_test.append(sum(batches_loss) / len(batches_loss))
                 else:
                     label_as_list = list(map(lambda x:int(x[0]), label.cpu().data.tolist()))
                     predeict_as_list = pred.tolist()
@@ -190,16 +191,15 @@ def triplet_test(model,test_loader, train_flag, loss_function, y_pred=None, y_tr
                     y_true[indx].extend(label_as_list)
                     acc_to_add = (sum((np.array(predeict_as_list) > 0) == np.array(label_as_list)) / dist_a_p.size()[0]) 
                     acc_for_batches[indx].append(acc_to_add)
-                    loss_history_for_epoch_test.append(sum(batches_loss) / len(batches_loss))
         
 
 if __name__ == '__main__':
-    writer = SummaryWriter("../runs/debug")
-    train_line_data_set = LinesDataSetTripletWithLabel(csv_file="../train_labels_for_arabic_triplet.csv", root_dir="../data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    test_line_data_set = LinesDataSetTripletWithLabel(csv_file="../test_labels_for_arabic_triplet.csv", root_dir='../data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=15)
-    test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=15)
-    train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=15)
+    writer = SummaryWriter("../runs/custom_resnet_hebrew_25K_without_WD")
+    train_line_data_set = LinesDataSetTripletWithLabel(csv_file="../train_labels_for_hebrew_triplet.csv", root_dir="../data2_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    test_line_data_set = LinesDataSetTripletWithLabel(csv_file="../test_labels_for_hebrew_triplet.csv", root_dir='../data2_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=30)
+    test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=30)
+    train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True, batch_size=30)
 
     torch.manual_seed(17)
     my_model = ResNet(ResidualBlock, [2, 2, 2]).cuda()

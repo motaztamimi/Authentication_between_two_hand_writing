@@ -12,8 +12,6 @@ import seaborn as sn
 import pandas as pd
 from models.customResNet import ResNet, ResidualBlock
 from torch.utils.tensorboard import SummaryWriter
-from torch.optim.lr_scheduler import ReduceLROnPlateau
-
 def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
     model.train()
     batches_loss = []
@@ -24,20 +22,9 @@ def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
         image1 = image1[:,None,:,:]
         image2 = image2[:,None,:,:]
         label = label.cuda()
-
         output = model(image1, image2)
         optimizer.zero_grad()
-        new_label = torch.empty((label.shape[0], 2)).float().cuda()
-
-        for i in range(label.shape[0]):
-            if label[i].item() == 1.:
-                new_label[i][0] = 0.
-                new_label[i][1] = 1.
-            if label[i].item() == 0.:
-                new_label[i][0] = 1.
-                new_label[i][1] = 0.
-
-        loss = loss_function(output, new_label)
+        loss = loss_function(output, label)
         loss_history.append(loss.cpu().item())
         batches_loss.append(loss.cpu().item())
         loss.backward()
@@ -56,18 +43,10 @@ def test ( model,test_loader, acc_history, train_flag):
         label = label.cuda()
         with torch.no_grad():
             output = model(image1, image2)
-            new_label = torch.empty((label.shape[0], 2)).float().cuda()
-            for i in range(label.shape[0]):
-                if label[i].item() == 1.:
-                    new_label[i][0] = 0.
-                    new_label[i][1] = 1.
-                if label[i].item() == 0.:
-                    new_label[i][0] = 1.
-                    new_label[i][1] = 0.
-            loss = loss_function(output, new_label)
-            predeict_= torch.argmax(output, dim=1).cpu().data
-            predeict_as_list = predeict_.tolist()
-            label_as_list = list(map(lambda x:int(x[0]), label.cpu().data.tolist()))
+            loss = loss_function(output, label)
+            predeict_= np.round(output.cpu())
+            predeict_as_list = predeict_.reshape(-1).tolist()
+            label_as_list = label.reshape(-1).tolist()
             batches_loss.append(loss.cpu().item())
             y_pred.extend(predeict_as_list)
             y_true.extend(label_as_list)
@@ -79,27 +58,11 @@ def test ( model,test_loader, acc_history, train_flag):
         all_acc_test.append(sum(acc_history) / len(acc_history))
         loss_history_for_epoch_test.append(sum(batches_loss) / len(batches_loss))
             
-def test_for_confusion_matrix(model, test_loader):
-    model.eval()
-    for _ , data in enumerate(test_loader):
-        image1, image2, label = data
-        image1 = image1.float().cuda()
-        image2 = image2.float().cuda()
-        image1 = image1[:,None,:,:]
-        image2 = image2[:,None,:,:]
-        label = label.cuda()
-        with torch.no_grad():
-            output = model(image1, image2)
-            predeict_= torch.argmax(output)
-            y_pred.append(predeict_.cpu().item())
-            y_true.append(label.cpu().item())
-
-
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs/custom_resnet_without_reg_writers_on_hebrew_CrossEntropy_without_weight_decay')
-    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_hebrew.csv", root_dir="data2_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_hebrew.csv", root_dir='data2_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    writer_ = SummaryWriter('runs/BCE/debug')
+    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_arabic.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=17)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
@@ -114,7 +77,7 @@ if __name__ == "__main__":
     for k in range(0, 4, 4):
         torch.manual_seed(17)
 
-        loss_function = nn.CrossEntropyLoss()
+        loss_function = nn.BCELoss()
 
         loss_history = []
         loss_history_for_ephoces = []
@@ -148,8 +111,8 @@ if __name__ == "__main__":
 
 
         my_model = my_model.cuda()
-        optimizer = torch.optim.Adam(my_model.parameters(), lr=0.001)
-        scheduler = ReduceLROnPlateau(optimizer, 'min', patience = 2, verbose=True)
+        optimizer = torch.optim.Adam(my_model.parameters(), lr=0.0003)
+        # scheduler = ReduceLROnPlateau(optimizer, 'min', patience = 2, verbose=True)
         writer_.add_graph(my_model.cuda(), (example_img1, example_img2))
 
         # my_model.load_state_dict(torch.load('model_v2_lr_0,001_adam_outs_2_18layer_epchs_20_labels_10000_acc_70.pt', map_location='cuda:0'))
@@ -181,7 +144,7 @@ if __name__ == "__main__":
 
             cf_matrix = confusion_matrix(y_true, y_pred)
             classes = ('0', '1')
-            df_cm = pd.DataFrame(cf_matrix / 8000, index = [i for i in classes],
+            df_cm = pd.DataFrame(cf_matrix / 10000, index = [i for i in classes],
                         columns = [i for i in classes])
             plt.figure(figsize = (12,7))
 

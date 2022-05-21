@@ -31,7 +31,7 @@ class ResidualBlock(nn.Module):
 
 # ResNet
 class ResNet(nn.Module):
-    def __init__(self, block, layers, num_classes=2):
+    def __init__(self, block, layers, num_classes=1):
         super(ResNet, self).__init__()
         self.in_channels = 16
         self.conv = nn.Conv2d(1, 16, kernel_size=3, 
@@ -46,7 +46,8 @@ class ResNet(nn.Module):
         # self.layer4 = self.make_layer(block, 512, layers[3], 2)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Sequential(nn.Linear(64, 32), nn.ReLU())
-        self.fc1 = nn.Sequential(nn.Linear(128, num_classes))
+        self.fc1 = nn.Linear(128, num_classes)
+        self.sigmoid = nn.Sigmoid()
 
     def make_layer(self, block, out_channels, blocks, stride=1):
         downsample = None
@@ -83,6 +84,7 @@ class ResNet(nn.Module):
         dist_ = torch.pow((output1 - output2), 2)
         V_ = torch.cat((output1, output2, dist_, h_), dim=1)
         output = self.fc1(V_)
+        output = self.sigmoid(output)
         return output
 
 

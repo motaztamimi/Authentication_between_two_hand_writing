@@ -1,6 +1,10 @@
 from email import header
 from statistics import median
 from unittest import result
+import os
+import sys
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 from cv2 import mean
 from numpy import std
 import dataManpiulation.detection_function as detection_function
@@ -11,11 +15,14 @@ import pandas as pd
 import random
 import dataManpiulation.prepare_data as prepare_data
 # from resnet18 import ResNet18
+from dataSets.data_set import LinesDataSet
+
 import torch
 import torchvision.transforms as transforms
-from dataSets.data_set import LinesDataSet
 from torch.utils.data import DataLoader
 import dataManpiulation.findminmum as findminmum
+from multiprocessing import Queue
+from models.customResNet import ResNet, ResidualBlock
 
 # from customResNet import ResNet, ResidualBlock
 Proc_step=0
@@ -86,6 +93,8 @@ def test ( model,test_loader, acc_history, train_flag, acc_history_std , acc_his
             acc_median.append(result_median)
             count+=1
         if count == 3:
+            # 10 10 10 
+            # 50  50  60 / 3 
             r = sum(acc_nean) /3  
             r_std =sum(acc_std)/3  
             r_median = sum(acc_median)/3    
@@ -125,8 +134,7 @@ def creating_lines_for_each_file(path='data1_as_one_page',path_1="data_for_each_
                                                         dir_name, name))
         # print('Done.')
 
-
-def find_miss_match_pairs_two_writer(path='Motaz_for_each_Person',person1 = 1, person2 = 2 ):
+def find_miss_match_pairs_two_writer(path='../data2_for_each_person',person1 = 1, person2 = 2 ):
     
     if os.path.exists(path):
 
@@ -170,7 +178,7 @@ def find_miss_match_pairs_two_writer(path='Motaz_for_each_Person',person1 = 1, p
         return csv_file
 
 
-def find_match_pairs_two_writer(path = "Motaz_for_each_Person" , person =1, flag= False):
+def find_match_pairs_two_writer(path = "../data2_for_each_person" , person =1, flag= False):
     if os.path.exists(path):
         # print('Creating all possible pairs of lines that creat a Match and store the labels in csv file...')
         dir_name = path
@@ -232,7 +240,7 @@ def testing(filename1 ,model_path):
     acc_history = []
     acc_history_std =[]
     acc_history_median =[]
-    test_data_set = LinesDataSet(filename1, 'Motaz_for_each_Person', transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,),(0.5,))  ]))
+    test_data_set = LinesDataSet(filename1, '../data2_for_each_person', transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5,),(0.5,))  ]))
     test_line_data_loader = DataLoader(test_data_set, shuffle=False, batch_size=10)
     model = ResNet(ResidualBlock, [2, 2, 2])
 
@@ -310,7 +318,7 @@ def main_test(test_file, model_path,que,que2):
     excel =looping_into_excel(test_file,model_path=model_path,que=que,que2=que2)
     excel_file,median_avg, mean_avg = update_excel(excel)
     print( median_avg, mean_avg)
-    return excel_file,median_avg, mean_avg
+    return median_avg, mean_avg
 
 
 def creating_excel_for_testing_3(excel_file1,excel_file2):
@@ -375,21 +383,27 @@ def create_excel_for_testing(excel_file):
 
 
 def median_mean_test():
-    test_file = testing_excel(r"testing3.xlsx",r"C:\Users\97258\Desktop\Motaz")
+    # test_file = testing_excel(r"testing3.xlsx",r"C:\Users\97258\Desktop\Motaz")
+    que1 = Queue()
+    que2 = Queue()
+    test_file = pd.read_excel("../testing3.xlsx")
     result1 =[]
     for i in range(0,30):
         print("epoch",i+1)
         to_add =[]
-        model_path = r'model_0_epoch_{}.pt'.format(i+1)
-        median_avg, mean_avg= main_test(test_file=test_file,model_path=model_path)
+        model_path = r'../model_0_epoch_{}.pt'.format(i+1)
+        median_avg, mean_avg= main_test(test_file=test_file,model_path=model_path,que= que1, que2= que2)
         to_add.append(i+1)
         to_add.append(median_avg)
         to_add.append(mean_avg)
         result1.append(to_add)
     excell= pd.DataFrame(result1)
     headerr = ['step','median','mean']
-    excell.to_excel('mustafa.xlsx',index=False,header=headerr)
+    excell.to_excel('hebrew_median.xlsx',index=False,header=headerr)
 
-create_excel_for_testing(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
-creating_excel_for_testing_2(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
-creating_excel_for_testing_3("testing.xlsx","testing2.xlsx")
+
+
+# create_excel_for_testing(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
+# creating_excel_for_testing_2(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
+# creating_excel_for_testing_3("testing.xlsx","testing2.xlsx")
+median_mean_test()

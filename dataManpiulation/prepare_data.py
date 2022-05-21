@@ -352,16 +352,16 @@ if __name__ == '__main__':
     # ------------------------------------------------------------------------------------#
     #                       FOR CREATING HEBREW DATA                                      #
     #-------------------------------------------------------------------------------------#
-    # from_two_pages_to_jpeg(r"C:\Users\97258\Desktop\hebrew_data","../data2_as_one_page")
-    # creating_lines_for_each_person_hebrew()
-    # Delete_White_Lines("../data2_for_each_person")
-    # count =0
-    # min = 1
-    # while min < 55:
-    #    min = find_min("../data2_for_each_person")
-    #    count+=1
-    # print(count)
-    #  resize_image("../data2_for_each_person") 
+    from_two_pages_to_jpeg(r"C:\Users\FinalProject\Desktop\arabic_data_wave4\Wave4","../data3_as_one_page")
+    creating_lines_for_each_person("../data3_as_one_page", "../data3_for_each_person")
+    Delete_White_Lines("../data3_for_each_person")
+    count =0
+    min = 1
+    while min < 55:
+       min = find_min("../data3_for_each_person")
+       count+=1
+    print(count)
+    resize_image("../data3_for_each_person") 
     # ------------------------------------------------------------------------------------#
     #                       Finish CREATING HEBREW DATA                                   #
     #-------------------------------------------------------------------------------------# 
@@ -374,5 +374,5 @@ if __name__ == '__main__':
     # print('Done. Now you can use the data')
     # resize_image("../data2_for_each_person") 
     # new_func('test_labels_try.csv')
-    # rename_newData_files(r"C:\Users\97258\Desktop\data 2",40)
+    # rename_newData_files(r"C:\Users\FinalProject\Desktop\arabic_data_wave4\Wave4",283)
     pass
