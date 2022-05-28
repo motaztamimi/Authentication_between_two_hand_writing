@@ -76,7 +76,6 @@ def test ( model,test_loader, acc_history, train_flag, acc_history_std , acc_his
     acc_std =[]
     acc_median =[]
     for indx, data in enumerate(test_loader):
-
         image1, image2, label = data
         image1 = image1.float().cuda()
         image2 = image2.float().cuda()
@@ -108,14 +107,14 @@ def test ( model,test_loader, acc_history, train_flag, acc_history_std , acc_his
     return acc_history , acc_history_std, acc_history_median
 
 
-def creating_lines_for_each_file(path='data1_as_one_page',path_1="data_for_each_person"):
-    
+def creating_lines_for_each_file(path, path_1):
+    """Create lines for each writer for any language split with . 
+    params:  path str folder as one page
+    params: path1  folder wanna fill it  witt lines for each person
+    """
     if os.path.exists(path):
-
-        # print('Finding lines for each person...')
-
+        print('Finding lines for each person...')
         files = os.listdir(path)
-
         if not os.path.exists(path_1):
             os.mkdir(path_1)
         for file in files:
@@ -128,11 +127,12 @@ def creating_lines_for_each_file(path='data1_as_one_page',path_1="data_for_each_
                 lines = detection_function.detect_lines(img)
                 for indx, line in enumerate(lines):
                     to_save = Image.fromarray(line)
-                    name = file.split('-')[1][0]
                     name = 'p'+str(number) + "_L_"+str((indx + 1))
                     to_save.save('{}/{}/{}.jpeg'.format(path_1,
                                                         dir_name, name))
-        # print('Done.')
+        print('Done.')
+
+
 
 def find_miss_match_pairs_two_writer(path='../data2_for_each_person',person1 = 1, person2 = 2 ):
     
@@ -254,7 +254,7 @@ def looping_into_excel(Excel_file,model_path,que,que2):
     excel_file=[]
     resultss= []
     csv_file = pd.DataFrame(excel_file)
-    max_rows=Excel_file.shape[0]
+    max_rows = Excel_file.shape[0]
     for i in range(max_rows):
         que.put(i+1)
         excel_file=[]
@@ -301,7 +301,7 @@ def looping_into_excel(Excel_file,model_path,que,que2):
         que2.put(toadd)
         resultss.append(toadd)
     main_Excel = pd.DataFrame(resultss)
-    headerr= ["first","second","pfirst","pfirst_std","pfirst_median","pfs","pfs_std","pfs_median","psecond","psecond_std","psecond_median" ]
+    headerr = ["first","second","pfirst","pfirst_std","pfirst_median","pfs","pfs_std","pfs_median","psecond","psecond_std","psecond_median" ]
     main_Excel.to_excel("final1.xlsx",index=False,header=headerr)
     return "final1.xlsx"
 
@@ -315,9 +315,9 @@ def testing_excel(excel_path, data_path,que,que2):
 
 
 def main_test(test_file, model_path,que,que2):
-    excel =looping_into_excel(test_file,model_path=model_path,que=que,que2=que2)
+    excel = looping_into_excel(test_file,model_path=model_path,que=que,que2=que2)
     excel_file,median_avg, mean_avg = update_excel(excel)
-    print( median_avg, mean_avg)
+    print(median_avg, mean_avg)
     return median_avg, mean_avg
 
 
@@ -348,7 +348,7 @@ def creating_excel_for_testing_3(excel_file1,excel_file2):
 
 
 def creating_excel_for_testing_2(excel_file):
-    test_file = pd.read_excel(excel_file,header=None)
+    test_file = pd.read_excel(excel_file,header=None,sheet_name="70D-test")
     max_row = test_file.shape[0]
     excel_ = []
     for i in range(0,max_row,1):
@@ -367,7 +367,7 @@ def creating_excel_for_testing_2(excel_file):
 
 
 def create_excel_for_testing(excel_file):
-    test_file = pd.read_excel(excel_file,header=None,)
+    test_file = pd.read_excel(excel_file,header=None,sheet_name="70D-test")
     max_row = test_file.shape[0]
     excel_ =[]
     for i in range(0,max_row,1):
@@ -381,6 +381,22 @@ def create_excel_for_testing(excel_file):
     main_excel.to_excel("../testing.xlsx",index=False,header=headerr)
     return 
 
+
+def create_excel_for_testing4(excel_file):
+    test_file = pd.read_excel(excel_file,header=None,sheet_name="70D-test")
+    max_row = test_file.shape[0]
+    excel_ =[]
+    for i in range(0,max_row,2):
+        toadd = []
+        left_writer =  test_file.iloc[i][0]
+        number = left_writer.split("-")[0]
+        writer = number+"-b.tiff"
+        toadd.append(left_writer)
+        toadd.append(writer)
+        excel_.append(toadd)
+    main_excel = pd.DataFrame(excel_)
+    headerr = ["first","second"]
+    main_excel.to_excel("../testing4.xlsx",index=False,header=headerr)
 
 def median_mean_test():
     # test_file = testing_excel(r"testing3.xlsx",r"C:\Users\97258\Desktop\Motaz")
@@ -401,9 +417,7 @@ def median_mean_test():
     headerr = ['step','median','mean']
     excell.to_excel('hebrew_median.xlsx',index=False,header=headerr)
 
-
-
-# create_excel_for_testing(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
-# creating_excel_for_testing_2(r"C:\Users\97258\Desktop\Motaz_test.xlsx")
-# creating_excel_for_testing_3("testing.xlsx","testing2.xlsx")
-median_mean_test()
+# create_excel_for_testing(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
+# creating_excel_for_testing_2(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
+# creating_excel_for_testing_3("../testing.xlsx","../testing2.xlsx")
+# create_excel_for_testing4(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")

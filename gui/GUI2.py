@@ -1,11 +1,17 @@
 import multiprocessing
 import tkinter as tk
 from tkinter import HORIZONTAL, Frame, PhotoImage, filedialog, messagebox, ttk
-import pandas as pd 
+import pandas as pd
+from sympy import false 
 import GUI_triplet
 from multiprocessing import Queue
 import threading
+from Generic_GUI import testing_excel
 
+
+lang = ["Arabic", "Hebrew", "English"]
+
+mode = ["CrossEntropy", "Triplet"]
 class MainGUI(Frame):
     
 
@@ -33,22 +39,50 @@ class MainGUI(Frame):
         #Down_box_tilte
         self.box_title = tk.LabelFrame(self.root, text="choose file and folder")
         self.box_title.place(height=200, width=450, rely=0.6, relx=0)
-        #Buttons
-        #file button
+        # ------------------------------ #
+        #          File button           #
+        # ------------------------------ #
         self.file_button = tk.Button(self.box_title, text="Browse A file",background="#93c4fc",command=lambda: self.File_dialog())
         self.file_button.place(rely=0.8,relx=0.5)
-
+        # ------------------------------ #
+        #     directory button           #
+        # ------------------------------ #
         #directory button
         self.folder_button = tk.Button(self.box_title, text = "chose directory",background="#93c4fc",command=lambda: self.Folder_dialog())
         self.folder_button.place(rely=0.8,relx=0.7)
-        
-        #load_excel_button
+        # ------------------------------ #
+        #     load file button           #
+        # ------------------------------ #
         self.load_excel_button = tk.Button(self.box_title,bg="#7bfdc5", text="Load File",command=lambda: self.Load_excel_data())
         self.load_excel_button.place(rely=0.8,relx=0.3)
-
+        # ------------------------------ #
+        #       Calculate button         #
+        # ------------------------------ #
         self.button4 = tk.Button(root, text="Calculate",background="#8ed49f",command=lambda:self.Testing_model())
         self.button4.config(width=20,height=3)
-        self.button4.place(relx=0.8,rely=0.5)
+        self.button4.place(relx=0.8,rely=0.4)
+        # ------------------------------ #
+        #          Save button           #
+        # ------------------------------ #
+        self.button5 = tk.Button(root, text="Save",background="#8ed49f",command=lambda:self.Save_file())
+        self.button5.config(width=20,height=3)
+        self.button5.place(relx=0.8,rely=0.3)
+        # ------------------------------ #
+        #          Combo Box             #
+        # ------------------------------ #
+        self.lang_label = tk.Label(root, text= "please select a language", bg="#93c4fc")
+        self.lang_label.place(relx=0.8, rely=0)
+        self.lang_list = ttk.Combobox(root, values=lang)
+        self.lang_list.current(0)
+        self.lang_list.place(relx=0.8, rely=0.05)
+        # ------------------------------ #
+        #          Combo Box mode        #
+        # ------------------------------ #
+        self.mode_label = tk.Label(root, text= "please select a mode", bg="#93c4fc")
+        self.mode_label.place(relx=0.8, rely=0.15)
+        self.mode_list = ttk.Combobox(root, values=mode)
+        self.mode_list.current(0)
+        self.mode_list.place(relx=0.8, rely=0.2)
 
 
         self.Label_file = tk.Label(self.box_title, text="No File Selected")
@@ -72,7 +106,18 @@ class MainGUI(Frame):
         self.queue =Queue()
         self.size =100
         self.queue2 = Queue()
-    
+        self.arabic_model = r"C:\Users\FinalProject\Desktop\backup_models\CrossEntropy\lr_0003\model_0_epoch_12.pt"
+        self.model_bylang = {"Arabic" : self.arabic_model}
+        self.mode_loss =  {"CrossEntropy" : False, "Triplet": True}
+        
+    def Save_file (self):
+        savefile = filedialog.asksaveasfilename(filetypes=(("Excel files", "*.xlsx"),
+                                                    ("All files", "*.*") ))     
+        filename = "../final1"   
+        filename+=".xlsx"     
+        with pd.ExcelWriter(savefile+".xlsx") as writer:
+            data = pd.read_excel(filename)
+            data.to_excel(writer ,header=True)   
 
     def File_dialog(self):
         filename = filedialog.askopenfilename(initialdir='/', title = "Select a file", filetypes=(("xlsx files","*.xlsx"),("csv files","*.csv")))
@@ -126,7 +171,6 @@ class MainGUI(Frame):
             if self.queue2:
                 out1 = self.queue2.get()
                 self.tv1.insert("","end",values=out1)
-        
         return
 
 
@@ -137,15 +181,15 @@ class MainGUI(Frame):
         self.tv1["show"] = "headings"
         for colum in self.tv1["column"]:
             self.tv1.heading(colum, text = colum)
- 
-        p = multiprocessing.Process(target= GUI_triplet.testing_excel,args=(self.excel_path ,self.data_path, self.queue,self.queue2))
+        print(self.model_bylang[self.lang_list.get()])
+        reading_for_Size = pd.read_excel(self.excel_path )
+        self.size=reading_for_Size.shape[0]
+        p = multiprocessing.Process(target= testing_excel,args=(self.excel_path ,self.data_path, self.model_bylang[self.lang_list.get()] ,self.queue,self.queue2,self.mode_loss[self.mode_list.get()]))
         p.start()
         q = threading.Thread(target=self.keyy )
         q.start()
         print("in work")
-
         p.join()
-
         self.isrunning =False
         return p
         

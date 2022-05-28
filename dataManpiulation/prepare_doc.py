@@ -4,6 +4,9 @@ from matplotlib import pyplot as plt
 
 
 def bigger_than(str1):
+    #sort for arabic
+    # temp1 = str1.split('-')
+    #sort for generic_data
     temp1 = str1.split('-')
     return int(temp1[0])
 
@@ -37,7 +40,7 @@ def get_concat_vertical(im1, im2):
     return dst
 
 
-def prepare_doc_test(path,foleder = "data1_as_one_page"):
+def prepare_doc_test(path,foleder = "../data1_as_one_page"):
     files = os.listdir(path)
     files.sort(key=bigger_than)
     file_number = 1
