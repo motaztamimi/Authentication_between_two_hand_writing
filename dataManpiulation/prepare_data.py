@@ -1,12 +1,11 @@
 import sys
 import os
-
+# from findminmum import find_min
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 import dataManpiulation.detection_function as detection_function
 import cv2
 import dataManpiulation.prepare_doc as prepare_doc
-from findminmum import find_min
 from PIL import Image
 import numpy as np
 import pandas as pd
@@ -352,16 +351,16 @@ if __name__ == '__main__':
     # ------------------------------------------------------------------------------------#
     #                       FOR CREATING HEBREW DATA                                      #
     #-------------------------------------------------------------------------------------#
-    from_two_pages_to_jpeg(r"C:\Users\FinalProject\Desktop\arabic_data_wave4\Wave4","../data3_as_one_page")
-    creating_lines_for_each_person("../data3_as_one_page", "../data3_for_each_person")
-    Delete_White_Lines("../data3_for_each_person")
-    count =0
-    min = 1
-    while min < 55:
-       min = find_min("../data3_for_each_person")
-       count+=1
-    print(count)
-    resize_image("../data3_for_each_person") 
+    # from_two_pages_to_jpeg(r"C:\Users\FinalProject\Desktop\arabic_data_wave4\Wave4","../data3_as_one_page")
+    # creating_lines_for_each_person("../data3_as_one_page", "../data3_for_each_person")
+    # Delete_White_Lines("../data3_for_each_person")
+    # count =0
+    # min = 1
+    # while min < 55:
+    #    min = find_min("../data3_for_each_person")
+    #    count+=1
+    # print(count)
+    # resize_image("../data3_for_each_person") 
     # ------------------------------------------------------------------------------------#
     #                       Finish CREATING HEBREW DATA                                   #
     #-------------------------------------------------------------------------------------# 

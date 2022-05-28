@@ -12,7 +12,6 @@ import pandas as pd
 import random
 import cv2
 import torch.nn.functional as F
-
 from PIL import Image
 from dataSets.data_set import LinesDataSetTripletWithLabel
 from multiprocessing import Queue
@@ -368,25 +367,25 @@ def create_excel_for_testing4(excel_file):
     main_excel.to_excel("../testing4.xlsx",index=False,header=headerr)
 
 
-def median_mean_test():
-    que1 = Queue()
-    que2 = Queue()
-    test_file = pd.read_excel("../testing3.xlsx")
-#  testing_excel("../testing3.xlsx", r"C:\Users\FinalProject\Desktop\Motaz")
-    result1 = []
-    for i in range(0,30):
-        print("epoch",i+1)
-        to_add =[]
-        model_path = r'C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_hebrew_25K_without_WD\model_epoch_{}.pt'.format(i+1)
-        mean_avg= main_test(test_file=test_file,model_path=model_path,que=que1 , que2=que2)
-        print(mean_avg)
-        to_add.append(i+1)
-        to_add.append(mean_avg)
-        result1.append(to_add)
-    excell= pd.DataFrame(result1)
-    headerr = ['step','mean']
-    name = "test_acc_mean.xlsx"
-    excell.to_excel(name,index=False,header=headerr)
+# def median_mean_test():
+#     que1 = Queue()
+#     que2 = Queue()
+#     test_file = pd.read_excel("../testing3.xlsx")
+# #  testing_excel("../testing3.xlsx", r"C:\Users\FinalProject\Desktop\Motaz")
+#     result1 = []
+#     for i in range(0,30):
+#         print("epoch",i+1)
+#         to_add =[]
+#         model_path = r'C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_hebrew_25K_without_WD\model_epoch_{}.pt'.format(i+1)
+#         mean_avg= main_test(test_file=test_file,model_path=model_path,que=que1 , que2=que2)
+#         print(mean_avg)
+#         to_add.append(i+1)
+#         to_add.append(mean_avg)
+#         result1.append(to_add)
+#     excell= pd.DataFrame(result1)
+#     headerr = ['step','mean']
+#     name = "test_acc_mean.xlsx"
+#     excell.to_excel(name,index=False,header=headerr)
 
 
 if __name__ == "__main__":
