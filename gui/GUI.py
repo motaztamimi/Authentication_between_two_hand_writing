@@ -344,11 +344,11 @@ def creating_excel_for_testing_3(excel_file1,excel_file2):
     headerr = ["first","second"]
 
     main_excel=pd.concat([test_file,exceell],ignore_index=False)
-    main_excel.to_excel("../testing3.xlsx",index=False, header=headerr)
+    main_excel.to_excel("../testing3_hebrew.xlsx",index=False, header=headerr)
 
 
 def creating_excel_for_testing_2(excel_file):
-    test_file = pd.read_excel(excel_file,header=None,sheet_name="70D-test")
+    test_file = pd.read_excel(excel_file,header=None,sheet_name="test_numebr")
     max_row = test_file.shape[0]
     excel_ = []
     for i in range(0,max_row,1):
@@ -363,11 +363,11 @@ def creating_excel_for_testing_2(excel_file):
                 excel_.append(toadd)
     main_excel = pd.DataFrame(excel_)
     headerr = ["first","second"]
-    main_excel.to_excel("../testing2.xlsx",index=False,header=headerr)
+    main_excel.to_excel("../testing2_hebrew.xlsx",index=False,header=headerr)
 
 
 def create_excel_for_testing(excel_file):
-    test_file = pd.read_excel(excel_file,header=None,sheet_name="70D-test")
+    test_file = pd.read_excel(excel_file,header=None,sheet_name="test_numebr")
     max_row = test_file.shape[0]
     excel_ =[]
     for i in range(0,max_row,1):
@@ -378,12 +378,12 @@ def create_excel_for_testing(excel_file):
         excel_.append(toadd)
     main_excel = pd.DataFrame(excel_)
     headerr = ["first","second"]
-    main_excel.to_excel("../testing.xlsx",index=False,header=headerr)
+    main_excel.to_excel("../testing_hebrew.xlsx",index=False,header=headerr)
     return 
 
 
 def create_excel_for_testing4(excel_file):
-    test_file = pd.read_excel(excel_file,header=None,sheet_name="70D-test")
+    test_file = pd.read_excel(excel_file,header=None,sheet_name="test_numebr")
     max_row = test_file.shape[0]
     excel_ =[]
     for i in range(0,max_row,2):
@@ -417,7 +417,7 @@ def median_mean_test():
     headerr = ['step','median','mean']
     excell.to_excel('hebrew_median.xlsx',index=False,header=headerr)
 
-# create_excel_for_testing(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
-# creating_excel_for_testing_2(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")
-# creating_excel_for_testing_3("../testing.xlsx","../testing2.xlsx")
+create_excel_for_testing(r"../hebrew_data.xlsx")
+creating_excel_for_testing_2(r"../hebrew_data.xlsx")
+creating_excel_for_testing_3("../testing_hebrew.xlsx","../testing2_hebrew.xlsx")
 # create_excel_for_testing4(r"C:\Users\FinalProject\Desktop\Motaz_test.xlsx")

@@ -12,6 +12,8 @@ import seaborn as sn
 import pandas as pd
 from models.customResNet import ResNet, ResidualBlock
 from torch.utils.tensorboard import SummaryWriter
+
+
 def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
     model.train()
     batches_loss = []
@@ -30,6 +32,7 @@ def train ( model, loss_function, optimizer,train_loader,loss_history, epoch):
         loss.backward()
         optimizer.step()
     loss_history_for_ephoces.append( sum(batches_loss) / len(batches_loss))
+
 
 def test ( model,test_loader, acc_history, train_flag):
     model.eval()
@@ -60,10 +63,11 @@ def test ( model,test_loader, acc_history, train_flag):
             
 
 if __name__ == "__main__":
-    writer_ = SummaryWriter('runs/BCE/debug/0.0001')
+    writer_ = SummaryWriter('runs/BCE/hebrew/0.0003_hebrew_weight_decay')
+
+    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_hebrew.csv", root_dir="data2_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
+    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_hebrew.csv", root_dir='data2_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     
-    train_line_data_set = LinesDataSet(csv_file="Train_labels_for_arabic.csv", root_dir="data_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
-    test_line_data_set = LinesDataSet(csv_file="Test_labels_for_arabic.csv", root_dir='data_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
     test_line_data_loader = DataLoader(test_line_data_set, shuffle=True, batch_size=17)
     train_line_data_loader_for_test = DataLoader(train_line_data_set,shuffle=True,batch_size=17)
@@ -112,7 +116,7 @@ if __name__ == "__main__":
 
 
         my_model = my_model.cuda()
-        optimizer = torch.optim.Adam(my_model.parameters(), lr=0.0001)
+        optimizer = torch.optim.Adam(my_model.parameters(), lr=0.0003, weight_decay=0.0001)
         # scheduler = ReduceLROnPlateau(optimizer, 'min', patience = 2, verbose=True)
         writer_.add_graph(my_model.cuda(), (example_img1, example_img2))
 

@@ -29,7 +29,7 @@ def testing_excel(excel_path, data_path, model, que, que2, mode=False):
     test_file = pd.read_excel(excel_path)
     # folder, GUI_for_each_person = detect_lines(data_path)
     excel = main_test(test_file=test_file, model_path=model,
-                      data_for_each_person="../GUI_data_for_each_person", que=que, que2=que2, mode=mode)
+                      data_for_each_person="../data2_for_each_person", que=que, que2=que2, mode=mode)
     return excel
 
 

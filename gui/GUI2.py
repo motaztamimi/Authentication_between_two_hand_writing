@@ -106,8 +106,9 @@ class MainGUI(Frame):
         self.queue =Queue()
         self.size =100
         self.queue2 = Queue()
-        self.arabic_model = r"C:\Users\FinalProject\Desktop\backup_models\CrossEntropy\lr_0003\model_0_epoch_12.pt"
-        self.model_bylang = {"Arabic" : self.arabic_model}
+        self.arabic_model = r"C:\Users\FinalProject\Desktop\backup_models\CrossEntropy\arabic\lr_0003\model_0_epoch_12.pt"
+        self.hebrew_model = r"C:\Users\FinalProject\Desktop\backup_models\CrossEntropy\hebrew\lr0.0003\model_0_epoch_11.pt"
+        self.model_bylang = {"Arabic" : self.arabic_model ,"Hebrew" :self.hebrew_model}
         self.mode_loss =  {"CrossEntropy" : False, "Triplet": True}
         
     def Save_file (self):
