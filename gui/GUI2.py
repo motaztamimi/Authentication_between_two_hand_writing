@@ -1,6 +1,7 @@
 import multiprocessing
 import tkinter as tk
-from tkinter import HORIZONTAL, Frame, PhotoImage, filedialog, messagebox, ttk
+from tkinter import HORIZONTAL, Frame, Label, PhotoImage, filedialog, messagebox, ttk
+from turtle import width
 import pandas as pd
 from sympy import false 
 import GUI_triplet
@@ -24,7 +25,7 @@ class MainGUI(Frame):
         self.root.pack_propagate(False)
         self.root.resizable(0,0)
         #LOGO IMG
-        self.Logo_Image = PhotoImage(file=r"C:\Users\FinalProject\Desktop\download.png")
+        self.Logo_Image = PhotoImage(file=r"..\images\download.png")
         self.Logo_label = tk.Label(self.root,image=self.Logo_Image)
         self.Logo_label.place(x=530,y=400)
         # EXCEL TABLE
@@ -83,7 +84,7 @@ class MainGUI(Frame):
         self.mode_list = ttk.Combobox(root, values=mode)
         self.mode_list.current(0)
         self.mode_list.place(relx=0.8, rely=0.2)
-
+        
 
         self.Label_file = tk.Label(self.box_title, text="No File Selected")
         self.Label_file.place(rely=0, relx=0)
@@ -103,18 +104,27 @@ class MainGUI(Frame):
         self.excel_path=""
         self.data_path = ""
         self.isrunning = False
+        self.start = False
         self.queue =Queue()
         self.size =100
         self.queue2 = Queue()
-        self.arabic_model = r"C:\Users\FinalProject\Desktop\backup_models\CrossEntropy\arabic\lr_0003\model_0_epoch_12.pt"
-        self.hebrew_model = r"C:\Users\FinalProject\Desktop\backup_models\CrossEntropy\hebrew\lr0.0003\model_0_epoch_11.pt"
+        self.arabic_model = r"..\images\model_0_epoch_12.pt"
+        self.hebrew_model = r"..\images\model_0_epoch_11.pt"
         self.model_bylang = {"Arabic" : self.arabic_model ,"Hebrew" :self.hebrew_model}
         self.mode_loss =  {"CrossEntropy" : False, "Triplet": True}
+        self.credit = Label(self.root, text="Developed By Motaz Tamimi & Mustafa Abu Ghanam (2022), All right reserved.",font=(20), background="gray",fg="white")
+        self.credit.place(rely=0.95,relx=0,height=40)
         
     def Save_file (self):
+        if  not self.start:
+            messagebox.showerror("information","still not start")
+            return
+        if self.isrunning:
+            messagebox.showerror("information","still not finish")
+            return
         savefile = filedialog.asksaveasfilename(filetypes=(("Excel files", "*.xlsx"),
                                                     ("All files", "*.*") ))     
-        filename = "../final1"   
+        filename = "../final_result"   
         filename+=".xlsx"     
         with pd.ExcelWriter(savefile+".xlsx") as writer:
             data = pd.read_excel(filename)
@@ -166,7 +176,8 @@ class MainGUI(Frame):
             if self.queue:
                 out= self.queue.get()
                 print(out)
-                self.txt["text"] = ((out/self.size))*100
+                vv = int((out/self.size)*100)
+                self.txt["text"] = f"{vv} %"
                 self.Progress_Bar["value"] = ((out/self.size))*100
         
             if self.queue2:
@@ -178,7 +189,7 @@ class MainGUI(Frame):
     def work(self):
         print(" in test")
         self.clear_data()
-        self.tv1["column"] = ["first","second","pfirst","pfs","psecond"]
+        self.tv1["column"] = ["first","second","Result","simple__result"]
         self.tv1["show"] = "headings"
         for colum in self.tv1["column"]:
             self.tv1.heading(colum, text = colum)
@@ -196,6 +207,7 @@ class MainGUI(Frame):
         
 
     def Testing_model(self):
+        self.start = True
         if self.isrunning:
             return
         if self.Label_file["text"] is None or self.Label_folder["text"] is None:

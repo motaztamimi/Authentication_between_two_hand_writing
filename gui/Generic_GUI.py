@@ -27,9 +27,11 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 def testing_excel(excel_path, data_path, model, que, que2, mode=False):
     print("Starting reading excel file")
     test_file = pd.read_excel(excel_path)
-    # folder, GUI_for_each_person = detect_lines(data_path)
+    folder, GUI_for_each_person = detect_lines(data_path)
     excel = main_test(test_file=test_file, model_path=model,
-                      data_for_each_person="../data2_for_each_person", que=que, que2=que2, mode=mode)
+                      data_for_each_person=GUI_for_each_person, que=que, que2=que2, mode=mode)
+    shutil.rmtree(folder)
+    shutil.rmtree(GUI_for_each_person)
     return excel
 
 
@@ -39,12 +41,6 @@ def detect_lines(datapath):
     prepare_data.from_two_pages_to_jpeg(datapath, folder=folder)
     creating_lines_for_each_file(folder, GUI_for_each_person)
     prepare_data.Delete_White_Lines(GUI_for_each_person)
-    min = 1
-    count = 0
-    while min < 55:
-        min = findminmum.find_min(GUI_for_each_person)
-        count += 1
-    print(count)
     prepare_data.resize_image(GUI_for_each_person)
     return folder, GUI_for_each_person
 
@@ -93,11 +89,13 @@ def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, 
     resultss = []
     csv_file = pd.DataFrame(excel_file)
     max_rows = Excel_file.shape[0]
+    result2 = []
     for i in range(max_rows):
         que.put(i+1)
 
         excel_file = []
         toadd = []
+        toadd2 = [] 
         # create data frame
         csv_file = pd.DataFrame(excel_file)
         # take the first cell extract the name of the file
@@ -130,6 +128,15 @@ def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, 
         toadd.append(first_file)
         toadd.append(second_file)
 
+        toadd2.append(first_file)
+        toadd2.append(second_file)
+        maslem = 1-results[1]
+
+        toadd2.append(f"{round(maslem*100)}%")
+        if maslem < 0.45:
+            toadd2.append("diffrent")
+        else:
+            toadd2.append("Same")
         toadd.append(results[0])
         toadd.append(result_std[0])
         toadd.append(result_median[0])
@@ -141,16 +148,17 @@ def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, 
         toadd.append(results[2])
         toadd.append(result_std[2])
         toadd.append(result_median[2])
-        que2.put(toadd)
+        que2.put(toadd2)
         resultss.append(toadd)
+        result2.append(toadd2)
     main_Excel = pd.DataFrame(resultss)
+    main_excel2 = pd.DataFrame(result2)
+    header2 =  ["first", "second", "Result","simple__result"]
     headerr = ["first", "second", "pfirst", "pfirst_std", "pfirst_median",
                "pfs", "pfs_std", "pfs_median", "psecond", "psecond_std", "psecond_median"]
     main_Excel.to_excel("../final1.xlsx", index=False, header=headerr)
-    # TODO must return filename to
-    # TODO  delete the header
-    # delete it
-    return "../final1.xlsx"
+    main_excel2.to_excel("../final_result.xlsx",index=False, header=header2)
+    return "../final_result.xlsx"
 
 
 def looping_into_excel_triplet_mode(Excel_file, model_path, data_for_each_person, que, que2, mode):

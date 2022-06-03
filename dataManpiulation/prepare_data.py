@@ -243,6 +243,9 @@ def Delete_White_Lines(path='data_for_each_person'):
                     if right_sideof_line.size - 1500 < white_pixeles_for_right <= right_sideof_line.size:
                         count += 1
                         os.remove(imgpath)
+                    elif img.shape[0] < 55:
+                        count += 1
+                        os.remove(imgpath)
         print('Done, number of deleted lines: {}'.format(count))
 
 def Sorting_Dir(dirname):
