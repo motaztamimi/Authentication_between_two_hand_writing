@@ -1,6 +1,11 @@
 import torch.nn.functional as F
 from statistics import median
 from cv2 import mean
+import os
+import sys
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
 from dataSets.data_set import LinesDataSetTripletWithLabel
 from numpy import std
 import dataManpiulation.detection_function as detection_function
@@ -13,16 +18,9 @@ from dataSets.data_set import LinesDataSet
 import torch
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-import dataManpiulation.findminmum as findminmum
-from multiprocessing import Queue
 from models.customResNet import ResNet, ResidualBlock
 import shutil
-import os
-import sys
-from sphinx import path
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
-
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def testing_excel(excel_path, data_path, model, que, que2, mode=False):
     print("Starting reading excel file")
@@ -378,7 +376,7 @@ def find_match_pairs_two_writer_generic(path, person, flag=False):
 
 
 def testing(filename1, model_path, data_for_each_person, mode):
-
+    
     acc_history = []
     acc_history_std = []
     acc_history_median = []
@@ -394,8 +392,8 @@ def testing(filename1, model_path, data_for_each_person, mode):
         test_line_data_loader = DataLoader(
             test_data_set, shuffle=False, batch_size=10)
     model = ResNet(ResidualBlock, [2, 2, 2])
-    model = model.cuda()
-    model.load_state_dict(torch.load(model_path, map_location='cuda:0'))
+    model = model.to(device=device)
+    model.load_state_dict(torch.load(model_path))
     if mode:
         test_triplet(model, test_line_data_loader, acc_history, 1.5)
     else:
@@ -412,11 +410,11 @@ def test_cross(model, test_loader, acc_history, train_flag, acc_history_std, acc
     acc_median = []
     for indx, data in enumerate(test_loader):
         image1, image2, label = data
-        image1 = image1.float().cuda()
-        image2 = image2.float().cuda()
+        image1 = image1.float().to(device)
+        image2 = image2.float().to(device)
         image1 = image1[:, None, :, :]
         image2 = image2[:, None, :, :]
-        label = label.cuda()
+        label = label.to(device)
         with torch.no_grad():
             output = model(image1, image2)
             resultt = mean(output[:, 0].cpu().numpy())[0]
@@ -446,13 +444,13 @@ def test_triplet(model, test_loader, acc_history, thresh):
     # print(thresh)
     for _, data in enumerate(test_loader):
         image1, image2, image3, label = data
-        image1 = image1.float().cuda()
-        image2 = image2.float().cuda()
-        image3 = image3.float().cuda()
+        image1 = image1.float().to(device)
+        image2 = image2.float().to(device)
+        image3 = image3.float().to(device)
         image1 = image1[:, None, :, :]
         image2 = image2[:, None, :, :]
         image3 = image3[:, None, :, :]
-        label = label.cuda()
+        label = label.to(device)
         with torch.no_grad():
             output = model(image1, image2, image3)
             dist_a_p = F.pairwise_distance(output[0], output[1], 2)

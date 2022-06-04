@@ -3,15 +3,11 @@ import tkinter as tk
 from tkinter import HORIZONTAL, Frame, Label, PhotoImage, filedialog, messagebox, ttk
 from turtle import width
 import pandas as pd
-from sympy import false 
-import GUI_triplet
-from multiprocessing import Queue
+from multiprocessing import Queue, freeze_support
 import threading
 from Generic_GUI import testing_excel
 
-
 lang = ["Arabic", "Hebrew", "English"]
-
 mode = ["CrossEntropy", "Triplet"]
 class MainGUI(Frame):
     
@@ -30,7 +26,7 @@ class MainGUI(Frame):
         self.Logo_label.place(x=530,y=400)
         # EXCEL TABLE
         self.Excel_Box = tk.LabelFrame(self.root, text="Excel Data",background="#e2ebf9")
-        self.Excel_Box.place(height=300, width=700)
+        self.Excel_Box.place(height=300, width=500)
         #Progress bar
         self.Progress_Bar =  ttk.Progressbar(self.root,orient=HORIZONTAL, length=500,mode= "determinate")
         self.Progress_Bar.place(rely=0.52,relx=0)
@@ -92,15 +88,19 @@ class MainGUI(Frame):
         self.Label_folder = tk.Label(self.box_title, text="No such Folder selected")
         self.Label_folder.place(rely=0.1,relx=0)
 
+
+        style = ttk.Style(self)
+        aktualTheme = style.theme_use()
+        style.theme_create("dummy", parent=aktualTheme)
+        style.theme_use("dummy")        # style.theme_use("vista")
         self.tv1 = ttk.Treeview(self.Excel_Box)
-        self.tv1.place(relheight=1, relwidth=1)
-
+        self.tv1.tag_configure('Same', background='yellow')
+        self.tv1.place(relheight=1, relwidth=1,width=1)
         self.treeScrolly = tk.Scrollbar(self.Excel_Box, orient="vertical", command=self.tv1.yview)
-        self.treeScrollx = tk.Scrollbar(self.Excel_Box, orient="horizontal", command=self.tv1.xview)
-
-        self.tv1.configure(xscrollcommand=self.treeScrollx, yscrollcommand=self.treeScrolly)
+        self.tv1.configure(yscrollcommand=self.treeScrolly)
         self.treeScrolly.pack(side="right",fill="y")
-        self.treeScrollx.pack(side="bottom",fill="x")
+
+
         self.excel_path=""
         self.data_path = ""
         self.isrunning = False
@@ -156,8 +156,9 @@ class MainGUI(Frame):
             return None
         self.clear_data()
         self.tv1["column"] = list(df.columns)
+        self.tv1.column("first",anchor="center",width=70)
+        self.tv1.column("second",anchor="center",width=70)
         self.tv1["show"] = "headings"
-
         for colum in self.tv1["column"]:
             self.tv1.heading(colum, text = colum)
         df_rows = df.to_numpy().tolist()
@@ -182,18 +183,29 @@ class MainGUI(Frame):
         
             if self.queue2:
                 out1 = self.queue2.get()
-                self.tv1.insert("","end",values=out1)
-        return
+                tag = ""
+                if out1[3] == "Same":
+                    tag = "Same"
+                else:
+                    tag = "diffrent"
+                print(tag)
+                self.tv1.insert("",0,values=out1, tags=(f"{tag}"))
 
+        return
+ 
 
     def work(self):
         print(" in test")
         self.clear_data()
         self.tv1["column"] = ["first","second","Result","simple__result"]
         self.tv1["show"] = "headings"
+        self.tv1.column("first",anchor="center",width=70)
+        self.tv1.column("second",anchor="center",width=70)
+        self.tv1.column("Result",anchor="center",width=70)
+        self.tv1.column("simple__result",anchor="center",width=90)
+
         for colum in self.tv1["column"]:
             self.tv1.heading(colum, text = colum)
-        print(self.model_bylang[self.lang_list.get()])
         reading_for_Size = pd.read_excel(self.excel_path )
         self.size=reading_for_Size.shape[0]
         p = multiprocessing.Process(target= testing_excel,args=(self.excel_path ,self.data_path, self.model_bylang[self.lang_list.get()] ,self.queue,self.queue2,self.mode_loss[self.mode_list.get()]))
@@ -202,8 +214,9 @@ class MainGUI(Frame):
         q.start()
         print("in work")
         p.join()
+        p.terminate()
         self.isrunning =False
-        return p
+        return q
         
 
     def Testing_model(self):
@@ -222,7 +235,9 @@ class MainGUI(Frame):
         t_worker = threading.Thread(target=self.work)
         t_worker.start()
         print("im here in testing")
-        # t_worker.join()
+        if not self.isrunning:
+            print("imhere")
+            t_worker.join()
         return 
 
 
@@ -242,6 +257,7 @@ class MainGUI(Frame):
 
 
 if __name__ == '__main__':
+    freeze_support()
     root = tk.Tk()
     MainGUI(root)
     root.mainloop()
