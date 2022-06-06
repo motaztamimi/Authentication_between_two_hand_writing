@@ -35,6 +35,8 @@ class MainGUI(Frame):
         self.root_label.pack()
         self.root.pack_propagate(False)
         self.root.resizable(0, 0)
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
         # # ------------------------------ #
         # #          logo imagee           #
         # # ------------------------------ #
@@ -373,10 +375,11 @@ class MainGUI(Frame):
         pass
 
     def keyy(self):
-        while self.isrunning:
+        t = threading.currentThread()
+
+        while self.isrunning and getattr(t, "do_run", True):
             if self.queue:
                 out = self.queue.get()
-                print(out)
                 vv = int((out / self.size) * 100)
                 self.txt["text"] = f"{vv} %"
                 self.Progress_Bar["value"] = ((out / self.size)) * 100
@@ -410,7 +413,7 @@ class MainGUI(Frame):
             self.tv1.heading(colum, text=colum)
         reading_for_Size = pd.read_excel(self.excel_path)
         self.size = reading_for_Size.shape[0]
-        p = multiprocessing.Process(
+        self.p = multiprocessing.Process(
             target=testing_excel,
             args=(
                 self.excel_path,
@@ -421,14 +424,13 @@ class MainGUI(Frame):
                 self.mode_loss[self.mode_list.get()],
             ),
         )
-        p.start()
-        q = threading.Thread(target=self.keyy)
-        q.start()
+        self.p.start()
+        self.q = threading.Thread(target=self.keyy)
+        self.q.start()
         print("in work")
-        p.join()
-        p.terminate()
-        self.isrunning = False
-        return q
+        # self.q.join()
+        # self.isrunning = False
+        return self.q
 
     def Testing_model(self):
         self.start = True
@@ -439,14 +441,24 @@ class MainGUI(Frame):
         data_path = r"{}".format(self.folder_path)
         self.excel_path = excelpath
         self.data_path = data_path
-        t_worker = threading.Thread(target=self.work)
-        t_worker.start()
-        print("im here in testing")
-        if not self.isrunning:
-            print("imhere")
-            t_worker.join()
+        self.work()
+        
+        # threading.Thread(target=self.work)
+        # self.t_worker.start()
+        # print("im here in testing")
+        # if not self.isrunning:
+        #     print("imhere")
+        #     self.t_worker.join()
         return
 
+    def on_closing(self):
+        if messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.isrunning =False
+            self.p.kill()
+            self.p.terminate()
+            self.q.do_run = False
+            self.q.join()
+            root.destroy()
 
 if __name__ == "__main__":
     freeze_support()

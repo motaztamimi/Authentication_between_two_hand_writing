@@ -132,14 +132,21 @@ dmypy.json
 *.csv
 
 #jpeg files
-*.jpeg
+/data_for_each_person
+/data2_as_one_page
+/data1_as_one_page
+/data2_for_each_person
+/GUI_data_as_one_page
+/GUI_data_for_each_person
+/Motaz_as_one_page
+/Motaz_for_each_Person
 
-*.png
-*.jpg
 #model
-
+/output
 
 runs
 
 *.xlsx
 *.pt
+*.png
+*.jpg
