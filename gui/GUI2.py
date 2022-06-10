@@ -1,4 +1,5 @@
 import multiprocessing
+from time import sleep
 import tkinter as tk
 from tkinter import (
     HORIZONTAL,
@@ -19,7 +20,8 @@ from PIL import Image, ImageTk
 from matplotlib import pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
+import skimage
+import time
 lang = ["Arabic", "Hebrew", "English"]
 mode = ["CrossEntropy", "Triplet"]
 
@@ -36,7 +38,7 @@ class MainGUI(Frame):
         self.root.pack_propagate(False)
         self.root.resizable(0, 0)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-
+        self.z=1
         # # ------------------------------ #
         # #          logo imagee           #
         # # ------------------------------ #
@@ -45,6 +47,7 @@ class MainGUI(Frame):
         self.logo_img = ImageTk.PhotoImage(self.logo_resize_image)
         self.logo_label = tk.Label(self.root, image=self.logo_img)
         self.logo_label.place(rely=0.76, relx=0.68)
+        self.data_loading_label = tk.Label(root,background="white",foreground="black",font=(30))
         if 1:
             # # ------------------------------ #
             # #          File frame           #
@@ -217,11 +220,10 @@ class MainGUI(Frame):
             #          Combo Box mode        #
             # ------------------------------ #
             self.mode_label = tk.Label(root, text="please select a mode", bg="#93c4fc")
-            self.mode_label.place(relx=0.8, rely=0.15)
+            # self.mode_label.place(relx=0.8, rely=0.15)
             self.mode_list = ttk.Combobox(root, values=mode)
             self.mode_list.current(0)
-            self.mode_list.place(relx=0.8, rely=0.6)
-
+            # self.mode_list.place(relx=0.8, rely=0.6)
             # EXCEL TABLE
             self.Excel_Box = tk.LabelFrame(
                 self.root, text="Excel Data", background="#e2ebf9"
@@ -232,7 +234,10 @@ class MainGUI(Frame):
             style.theme_create("dummy", parent=aktualTheme)
             style.theme_use("dummy")  # style.theme_use("vista")
             self.tv1 = ttk.Treeview(self.Excel_Box)
-            self.tv1.tag_configure("Same", background="yellow")
+            self.tv1.tag_configure("Same", background="lightskyblue")
+            self.tv1.tag_configure("diffrent",background="red")
+            self.tv1.tag_configure("white",background="white")
+
             self.tv1.place(relheight=1, relwidth=1, width=1)
             self.treeScrolly = tk.Scrollbar(
                 self.Excel_Box, orient="vertical", command=self.tv1.yview
@@ -245,6 +250,7 @@ class MainGUI(Frame):
             self.isrunning = False
             self.start = False
             self.queue = Queue()
+        
             self.size = 100
             self.queue2 = Queue()
             self.arabic_model = r"..\images\model_0_epoch_12.pt"
@@ -284,6 +290,7 @@ class MainGUI(Frame):
         plt.axis("equal")
         can = FigureCanvasTkAgg(self.fig, self.chart_frame)
         can.draw()
+        self.vv = 0
         can.get_tk_widget().place(relx=0, rely=0)
 
     def plot_values(self):
@@ -292,7 +299,7 @@ class MainGUI(Frame):
         self.fig = plt.figure(figsize=(3.1, 2.5), dpi=100, facecolor="white")
         self.label = ["diffrent", "Same"]
         self.sizes = [self.difrrent, self.same]
-        self.color = ["lightskyblue", "red"]
+        self.color = ["red", "lightskyblue"]
         self.ex = (0, 0.2)
         plt.pie(
             self.sizes,
@@ -307,14 +314,13 @@ class MainGUI(Frame):
         chart = FigureCanvasTkAgg(self.fig, self.chart_frame)
         chart.draw()
         chart.get_tk_widget().place(relx=0, rely=0)
-
         return
 
     def Save_file(self):
         if not self.start:
             messagebox.showerror("information", "still not start")
             return
-        if self.isrunning:
+        if not self.vv or not self.vv == 100:
             messagebox.showerror("information", "still not finish")
             return
         savefile = filedialog.asksaveasfilename(
@@ -343,11 +349,9 @@ class MainGUI(Frame):
         if folder_name:
             messagebox.showinfo("information", f"data folder uploaded /n {folder_name}")
             self.folder_path = folder_name
-
         pass
 
     def Load_excel_data(self):
-
         file_path = self.file_path
         try:
             excel_file = r"{}".format(file_path)
@@ -367,7 +371,7 @@ class MainGUI(Frame):
             self.tv1.heading(colum, text=colum)
         df_rows = df.to_numpy().tolist()
         for row in df_rows:
-            self.tv1.insert("", "end", values=row)
+            self.tv1.insert("", "end", values=row,tags="white")
         return None
 
     def clear_data(self):
@@ -377,12 +381,19 @@ class MainGUI(Frame):
     def keyy(self):
         t = threading.currentThread()
 
+
         while self.isrunning and getattr(t, "do_run", True):
+
             if self.queue:
                 out = self.queue.get()
-                vv = int((out / self.size) * 100)
-                self.txt["text"] = f"{vv} %"
+                self.vv = int((out / self.size) * 100)
+                self.txt["text"] = f"{self.vv} %"
                 self.Progress_Bar["value"] = ((out / self.size)) * 100
+                if self.z ==1:
+                    self.data_loading_label["text"] = "Finish"
+                    self.data_loading_label["text"] = ""
+                    self.data_loading_label.after(1000, self.data_loading_label.destroy())
+                    self.z=0
 
             if self.queue2:
                 out1 = self.queue2.get()
@@ -396,7 +407,7 @@ class MainGUI(Frame):
                 print(tag)
                 self.plot_values()
                 self.tv1.insert("", 0, values=out1, tags=(f"{tag}"))
-
+        print("finishing keyy function")
         return
 
     def work(self):
@@ -422,42 +433,42 @@ class MainGUI(Frame):
                 self.queue,
                 self.queue2,
                 self.mode_loss[self.mode_list.get()],
+              
             ),
         )
         self.p.start()
-        self.q = threading.Thread(target=self.keyy)
+        self.q = threading.Thread(target=self.keyy, daemon=True)
         self.q.start()
         print("in work")
-        # self.q.join()
-        # self.isrunning = False
         return self.q
 
     def Testing_model(self):
         self.start = True
         if self.isrunning:
             return
+        if not self.file_path or not self.folder_path:
+            messagebox.showerror("erorr", "must upload excel file and data folder")
+            return 
         self.isrunning = True
+        self.data_loading_label["text"] = "Loading data ..."
+        self.data_loading_label.place(relx=0.7,rely=0.52)
+  
         excelpath = r"{}".format(self.file_path)
         data_path = r"{}".format(self.folder_path)
         self.excel_path = excelpath
         self.data_path = data_path
         self.work()
-        
-        # threading.Thread(target=self.work)
-        # self.t_worker.start()
-        # print("im here in testing")
-        # if not self.isrunning:
-        #     print("imhere")
-        #     self.t_worker.join()
         return
 
     def on_closing(self):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             self.isrunning =False
-            self.p.kill()
-            self.p.terminate()
-            self.q.do_run = False
-            self.q.join()
+            if  getattr(self, "p", None):
+                self.p.kill()
+                self.p.terminate()
+                self.p.join()
+            if getattr(self, 'q',None):
+                self.q.do_run = False
             root.destroy()
 
 if __name__ == "__main__":
