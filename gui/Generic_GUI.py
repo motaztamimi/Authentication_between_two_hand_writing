@@ -21,6 +21,8 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from models.customResNet import ResNet, ResidualBlock
 import shutil
+from multiprocessing import Queue
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def testing_excel(excel_path, data_path, model, que, que2 ,mode=False):
@@ -82,10 +84,10 @@ def main_test(test_file, model_path, data_for_each_person, que, que2, mode):
     else:
         excel = looping_into_excel(test_file, model_path=model_path,
                                    data_for_each_person=data_for_each_person, que=que, que2=que2, mode=mode)
-    # excel_file ,median_avg, mean_avg = update_excel(excel)
-    return excel
-    # print(median_avg, mean_avg)
-    # return median_avg, mean_avg
+    excel_file ,median_avg, mean_avg ,pfs= update_excel(excel)
+    # return excel
+    print(pfs)
+    return median_avg, mean_avg,pfs
 
 
 def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, mode):
@@ -106,7 +108,6 @@ def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, 
         first_file = Excel_file.loc[i][0]
         # take the second cell extract the name of the file
         second_file = Excel_file.loc[i][1]
-        # print(first_file + "," + second_file)
         global Proc_step
         Proc_step = (i+1)/max_rows
         first_file_number = first_file.split(".")[0]
@@ -126,7 +127,6 @@ def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, 
         csv_file = pd.concat([csv_file, third_csv])
         csv_file = pd.concat([csv_file, second_csv])
         csv_file.to_csv(filename1, index=False, sep=',', header=0)
-        print("Start testing")
         results, result_std, result_median = testing(
             filename1=filename1, model_path=model_path, data_for_each_person=data_for_each_person, mode=mode)
         toadd.append(first_file)
@@ -134,6 +134,7 @@ def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, 
 
         toadd2.append(first_file)
         toadd2.append(second_file)
+        print(results)
         maslem = 1-results[1]
 
         toadd2.append(f"{round(maslem*100)}%")
@@ -141,6 +142,8 @@ def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, 
             toadd2.append("diffrent")
         else:
             toadd2.append("Same")
+
+    
         toadd.append(results[0])
         toadd.append(result_std[0])
         toadd.append(result_median[0])
@@ -162,7 +165,8 @@ def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, 
                "pfs", "pfs_std", "pfs_median", "psecond", "psecond_std", "psecond_median"]
     main_Excel.to_excel("../final1.xlsx", index=False, header=headerr)
     main_excel2.to_excel("../final_result.xlsx",index=False, header=header2)
-    return "../final_result.xlsx"
+    #need to return to final_result
+    return "../final1.xlsx"
 
 
 def looping_into_excel_triplet_mode(Excel_file, model_path, data_for_each_person, que, que2, mode):
@@ -481,32 +485,67 @@ def update_excel(excel_file):
                         (0.5*(test_file['pfirst_median'][indx]+test_file['psecond_median'][indx])) for indx, _ in enumerate(test_file['pfirst_median'])]
     test_file['all2'] = [test_file['pfs'][indx] / (0.5*(test_file['pfirst'][indx]+test_file['psecond'][indx]))
                          for indx, _ in enumerate(test_file['pfirst_median'])]
+    
     arr = []
     for indx, _ in enumerate(test_file['all']):
         if test_file['firstt'][indx] == test_file['secondd'][indx]:
-            if test_file['all'][indx] >= 0.5:
+            if test_file['all'][indx] >= 0.45:
                 arr.append(1)
             else:
                 arr.append(0)
         else:
-            if test_file['all'][indx] > 0.5:
+            if test_file['all'][indx] > 0.45:
                 arr.append(0)
             else:
                 arr.append(1)
     arr1 = []
     for indx, _ in enumerate(test_file['all2']):
         if test_file['firstt'][indx] == test_file['secondd'][indx]:
-            if test_file['all2'][indx] >= 0.5:
+            if test_file['all2'][indx] >= 0.45:
                 arr1.append(1)
             else:
                 arr1.append(0)
         else:
-            if test_file['all2'][indx] > 0.5:
+            if test_file['all2'][indx] > 0.45:
                 arr1.append(0)
             else:
                 arr1.append(1)
+
+    arr2 = []
+    for indx, _ in enumerate(test_file['pfs']):
+        if test_file['firstt'][indx] == test_file['secondd'][indx]:
+            if test_file['pfs'][indx] <= 0.5:
+                arr2.append(1)
+            else:
+                arr2.append(0)
+        else:
+            if test_file['pfs'][indx] > 0.5:
+                arr2.append(1)
+            else:
+                arr2.append(0)
+    test_file["result3"]= arr2
     test_file['result'] = arr
 
     test_file['result2'] = arr1
     test_file.to_csv("final_GUI.csv")
-    return "final_GUI.csv", test_file['result'].mean(), test_file['result2'].mean()
+    return "final_GUI.csv", test_file['result'].mean(), test_file['result2'].mean(),test_file["result3"].mean()
+def median_mean_test():
+    # test_file = testing_excel(r"testing3.xlsx",r"C:\Users\97258\Desktop\Motaz")
+    que1 = Queue()
+    que2 = Queue()
+    test_file = pd.read_excel("../testing3_hebrew.xlsx")
+    result1 =[]
+    for i in range(0,16):
+        print("epoch",i+1)
+        to_add =[]
+        model_path = r'C:\Users\FinalProject\Desktop\backup_models\CrossEntropy\hebrew\lr0.0003\model_0_epoch_{}.pt'.format(i+1)
+        median_avg, mean_avg,pfs_avg= main_test(test_file=test_file,data_for_each_person="../data2_for_each_person",model_path=model_path,que= que1, que2= que2,mode=False)
+        to_add.append(i+1)
+        to_add.append(pfs_avg)
+        print(f"pfs{pfs_avg}")
+        result1.append(to_add)
+    excell= pd.DataFrame(result1)
+    headerr = ['step','pfs']
+    excell.to_excel('hebrew_flow_30.xlsx',index=False,header=headerr)
+
+# median_mean_test()
