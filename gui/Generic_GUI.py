@@ -1,3 +1,4 @@
+import queue
 import torch.nn.functional as F
 from statistics import median
 from cv2 import mean
@@ -22,20 +23,25 @@ from models.customResNet import ResNet, ResidualBlock
 import shutil
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-def testing_excel(excel_path, data_path, model, que, que2, mode=False):
+def testing_excel(excel_path, data_path, model, que, que2 ,mode=False):
     print("Starting reading excel file")
     test_file = pd.read_excel(excel_path)
     folder, GUI_for_each_person = detect_lines(data_path)
     excel = main_test(test_file=test_file, model_path=model,
                       data_for_each_person=GUI_for_each_person, que=que, que2=que2, mode=mode)
-    shutil.rmtree(folder)
-    shutil.rmtree(GUI_for_each_person)
     return excel
 
 
 def detect_lines(datapath):
     folder = "../GUI_data_as_one_page"
     GUI_for_each_person = "../GUI_data_for_each_person"
+    if  os.path.exists(folder):
+        print("deleting data")
+        shutil.rmtree(folder)
+    if os.path.exists(GUI_for_each_person):
+        print("deleting excel")
+
+        shutil.rmtree(GUI_for_each_person)
     prepare_data.from_two_pages_to_jpeg(datapath, folder=folder)
     creating_lines_for_each_file(folder, GUI_for_each_person)
     prepare_data.Delete_White_Lines(GUI_for_each_person)
@@ -393,7 +399,10 @@ def testing(filename1, model_path, data_for_each_person, mode):
             test_data_set, shuffle=False, batch_size=10)
     model = ResNet(ResidualBlock, [2, 2, 2])
     model = model.to(device=device)
-    model.load_state_dict(torch.load(model_path))
+    location = device
+    if device== "cuda":
+        location = "cuda:0"
+    model.load_state_dict(torch.load(model_path, map_location=location))
     if mode:
         test_triplet(model, test_line_data_loader, acc_history, 1.5)
     else:
