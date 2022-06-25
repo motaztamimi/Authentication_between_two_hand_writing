@@ -27,6 +27,7 @@ mode = ["CrossEntropy", "Triplet"]
 
 
 class MainGUI(Frame):
+    
     def __init__(self, root):
         Frame.__init__(self, root)
         self.root = root
@@ -36,17 +37,17 @@ class MainGUI(Frame):
         self.root_label = tk.Label(root, image=self.root_img)
         self.root_label.pack()
         self.root.pack_propagate(False)
-        self.root.resizable(0, 0)
+        self.root.resizable(1, 0)
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.z=1
         # # ------------------------------ #
         # #          logo imagee           #
         # # ------------------------------ #
         self.logo_img = Image.open(r"..\images\logo.png")
-        self.logo_resize_image = self.logo_img.resize((290, 100))
+        self.logo_resize_image = self.logo_img.resize((330, 100))
         self.logo_img = ImageTk.PhotoImage(self.logo_resize_image)
         self.logo_label = tk.Label(self.root, image=self.logo_img)
-        self.logo_label.place(rely=0.76, relx=0.68)
+        self.logo_label.place(rely=0.76, relx=0.63)
         self.data_loading_label = tk.Label(root,background="white",foreground="black",font=(30))
         if 1:
             # # ------------------------------ #
@@ -94,7 +95,7 @@ class MainGUI(Frame):
             # #          folder frame          #
             # # ------------------------------ #
             self.folder_choosee = tk.LabelFrame(self.root, background="white")
-            self.folder_choosee.place(height=200, width=200, rely=0.6, relx=0.25)
+            self.folder_choosee.place(height=200, width=200, rely=0.6, relx=0.225)
             self.folder_hidden_button = tk.Button(
                 self.folder_choosee,
                 background="white",
@@ -137,7 +138,7 @@ class MainGUI(Frame):
             self.lang = StringVar()
             self.lang.set("Arabic")
             self.lang_choosee = tk.LabelFrame(self.root, background="white")
-            self.lang_choosee.place(height=200, width=150, rely=0.6, relx=0.5)
+            self.lang_choosee.place(height=200, width=150, rely=0.6, relx=0.452)
             self.lang_label = tk.Label(
                 self.lang_choosee,
                 text="Language",
@@ -199,8 +200,8 @@ class MainGUI(Frame):
                 borderwidth=3,
                 command=lambda: self.Testing_model(),
             )
-            self.calculate_button.config(width=10, height=2)
-            self.calculate_button.place(relx=0.68, rely=0.6)
+            self.calculate_button.config(width=15, height=2)
+            self.calculate_button.place(relx=0.63, rely=0.6)
             # ------------------------------ #
             #          Save button           #
             # ------------------------------ #
@@ -214,8 +215,8 @@ class MainGUI(Frame):
                 border="1",
                 borderwidth=3,
             )
-            self.button5.config(width=10, height=2)
-            self.button5.place(relx=0.85, rely=0.6)
+            self.button5.config(width=15, height=2)
+            self.button5.place(relx=0.82, rely=0.6)
             # ------------------------------ #
             #          Combo Box mode        #
             # ------------------------------ #
@@ -253,11 +254,13 @@ class MainGUI(Frame):
         
             self.size = 100
             self.queue2 = Queue()
-            self.arabic_model = r"..\images\model_0_epoch_12.pt"
-            self.hebrew_model = r"..\images\model_0_epoch_11.pt"
+            self.arabic_model = r"..\images\models\model_arabic_epoch_10.pt"
+            self.hebrew_model = r"..\images\models\model_hebrew_epoch_10.pt"
+            self.english_model = r"..\images\models\model_english_epoch_7.pt"
             self.model_bylang = {
                 "Arabic": self.arabic_model,
                 "Hebrew": self.hebrew_model,
+                "English": self.english_model,
             }
             self.mode_loss = {"CrossEntropy": False, "Triplet": True}
             self.credit = Label(
@@ -271,7 +274,6 @@ class MainGUI(Frame):
                 rely=0.95,
                 relx=0,
             )
-
         # # ------------------------------ #
         # #          chart frame           #
         # # ------------------------------ #
@@ -413,12 +415,12 @@ class MainGUI(Frame):
     def work(self):
         print(" in test")
         self.clear_data()
-        self.tv1["column"] = ["first", "second", "Result", "simple__result"]
+        self.tv1["column"] = ["first", "second", "Result", "simple_result"]
         self.tv1["show"] = "headings"
         self.tv1.column("first", anchor="center", width=70)
         self.tv1.column("second", anchor="center", width=70)
         self.tv1.column("Result", anchor="center", width=70)
-        self.tv1.column("simple__result", anchor="center", width=90)
+        self.tv1.column("simple_result", anchor="center", width=90)
 
         for colum in self.tv1["column"]:
             self.tv1.heading(colum, text=colum)
