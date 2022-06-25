@@ -145,7 +145,7 @@ dmypy.json
 /output
 
 runs
-
+*.jpeg
 *.xlsx
 *.pt
 *.png
