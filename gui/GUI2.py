@@ -253,8 +253,8 @@ class MainGUI(Frame):
         
             self.size = 100
             self.queue2 = Queue()
-            self.arabic_model = r"..\images\model_0_epoch_12.pt"
-            self.hebrew_model = r"..\images\model_0_epoch_11.pt"
+            self.arabic_model = r"C:\Users\FinalProject\Desktop\backup_models\CrossEntropy\arabic\lr_0003\model_0_epoch_11.pt"
+            self.hebrew_model = r"C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_hebrew_25K_without_WD\model_epoch_13.pt"
             self.model_bylang = {
                 "Arabic": self.arabic_model,
                 "Hebrew": self.hebrew_model,
@@ -432,10 +432,10 @@ class MainGUI(Frame):
                 self.model_bylang[self.lang.get()],
                 self.queue,
                 self.queue2,
-                self.mode_loss[self.mode_list.get()],
-              
+                True,
             ),
         )
+        #self.mode_loss[self.mode_list.get()], return it for cross entropy
         self.p.start()
         self.q = threading.Thread(target=self.keyy, daemon=True)
         self.q.start()
