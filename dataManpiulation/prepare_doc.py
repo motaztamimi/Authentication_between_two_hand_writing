@@ -45,6 +45,8 @@ def prepare_doc_test(path,foleder = "../data1_as_one_page"):
     file_number = 1
     i = 0
     for file in files:
+        if ".tiff" not in file:
+            continue
         i += 1
         img = Image.open(path + "/" + str(file))
         # file = os.path.splitext(file)[0] + ".jpeg"
