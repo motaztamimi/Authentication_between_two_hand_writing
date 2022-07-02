@@ -6,7 +6,6 @@ import os
 import sys
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(SCRIPT_DIR))
-
 from dataSets.data_set import LinesDataSetTripletWithLabel
 from numpy import std
 import dataManpiulation.detection_function as detection_function
@@ -22,7 +21,7 @@ from torch.utils.data import DataLoader
 from models.customResNet import ResNet, ResidualBlock
 import shutil
 from multiprocessing import Queue
-
+import models.triplet_model as triplet_model
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 def testing_excel(excel_path, data_path, model, que, que2 ,mode=False):
@@ -42,7 +41,6 @@ def detect_lines(datapath):
         shutil.rmtree(folder)
     if os.path.exists(GUI_for_each_person):
         print("deleting excel")
-
         shutil.rmtree(GUI_for_each_person)
     prepare_data.from_two_pages_to_jpeg(datapath, folder=folder)
     creating_lines_for_each_file(folder, GUI_for_each_person)
@@ -84,10 +82,10 @@ def main_test(test_file, model_path, data_for_each_person, que, que2, mode):
     else:
         excel = looping_into_excel(test_file, model_path=model_path,
                                    data_for_each_person=data_for_each_person, que=que, que2=que2, mode=mode)
-    excel_file ,median_avg, mean_avg ,pfs= update_excel(excel)
+    excel_file,pfs= update_excel(excel)
     # return excel
     print(pfs)
-    return median_avg, mean_avg,pfs
+    return pfs
 
 
 def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, mode):
@@ -134,7 +132,6 @@ def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, 
 
         toadd2.append(first_file)
         toadd2.append(second_file)
-        print(results)
         maslem = 1-results[1]
 
         toadd2.append(f"{round(maslem*100)}%")
@@ -184,10 +181,10 @@ def looping_into_excel_triplet_mode(Excel_file, model_path, data_for_each_person
         first_file = Excel_file.loc[i][0]
         # take the second cell extract the name of the file
         second_file = Excel_file.loc[i][1]
+        
         # print(first_file + "," + second_file)
         first_file_number = first_file.split(".")[0]
         second_file_number = second_file.split(".")[0]
-        # print(first_file , ", " , second_file)
         # name file excel
         filename1 = "../match_Label.csv"
         # find match pairs for the first person
@@ -203,19 +200,19 @@ def looping_into_excel_triplet_mode(Excel_file, model_path, data_for_each_person
                 path=data_for_each_person, person=first_file_number, person2=second_file_number, miss_match_flag=True, person1_ancor=person1_ancor, Label=0)
         else:
             third_csv = find_miss_match_pairs_two_writer_generic_triplet(
-                apth=data_for_each_person, person=first_file_number, person2=second_file_number, miss_match_flag=True, person1_ancor=person1_ancor, Label=1)
+                path=data_for_each_person, person=first_file_number, person2=second_file_number, miss_match_flag=True, person1_ancor=person1_ancor, Label=1)
         csv_file = pd.concat([csv_file, third_csv])
         csv_file = pd.concat([csv_file, second_csv])
         csv_file.to_csv(filename1, index=False, sep=',', header=0)
 
         results, result_std, result_median = testing(
-            filename1=filename1, model_path=model_path, mode=mode)
+            filename1=filename1, data_for_each_person=data_for_each_person,model_path=model_path, mode=mode)
         toadd.append(first_file)
         toadd.append(second_file)
 
         toadd.append(results[0])
 
-        toadd.append(results[1])
+        toadd.append(1-results[1])
         toadd.append(results[2])
         que2.put(toadd)
         resultss.append(toadd)
@@ -396,13 +393,15 @@ def testing(filename1, model_path, data_for_each_person, mode):
                                                      transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]))
         test_line_data_loader = DataLoader(
             test_data_set, shuffle=False, batch_size=30)
+        model = triplet_model.ResNet(triplet_model.ResidualBlock, [2, 2, 2])
+        model = model.to(device=device)
     else:
         test_data_set = LinesDataSet(filename1, data_for_each_person, transform=transforms.Compose(
             [transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]))
         test_line_data_loader = DataLoader(
             test_data_set, shuffle=False, batch_size=10)
-    model = ResNet(ResidualBlock, [2, 2, 2])
-    model = model.to(device=device)
+        model = ResNet(ResidualBlock, [2, 2, 2])
+        model = model.to(device=device)
     location = device
     if device== "cuda":
         location = "cuda:0"
@@ -479,37 +478,37 @@ def test_triplet(model, test_loader, acc_history, thresh):
 
 def update_excel(excel_file):
     test_file = pd.read_excel(excel_file)
-    test_file["firstt"] = [i.split('-')[0] for i in test_file['first']]
-    test_file["secondd"] = [i.split('-')[0] for i in test_file['second']]
-    test_file['all'] = [test_file['pfs_median'][indx] /
-                        (0.5*(test_file['pfirst_median'][indx]+test_file['psecond_median'][indx])) for indx, _ in enumerate(test_file['pfirst_median'])]
-    test_file['all2'] = [test_file['pfs'][indx] / (0.5*(test_file['pfirst'][indx]+test_file['psecond'][indx]))
-                         for indx, _ in enumerate(test_file['pfirst_median'])]
+    test_file["firstt"] = [i.split('.')[0] for i in test_file['first']]
+    test_file["secondd"] = [i.split('.')[0] for i in test_file['second']]
+    # test_file['all'] = [test_file['pfs_median'][indx] /
+    #                     (0.5*(test_file['pfirst_median'][indx]+test_file['psecond_median'][indx])) for indx, _ in enumerate(test_file['pfirst_median'])]
+    # test_file['all2'] = [test_file['pfs'][indx] / (0.5*(test_file['pfirst'][indx]+test_file['psecond'][indx]))
+    #                      for indx, _ in enumerate(test_file['pfirst_median'])]
     
-    arr = []
-    for indx, _ in enumerate(test_file['all']):
-        if test_file['firstt'][indx] == test_file['secondd'][indx]:
-            if test_file['all'][indx] >= 0.45:
-                arr.append(1)
-            else:
-                arr.append(0)
-        else:
-            if test_file['all'][indx] > 0.45:
-                arr.append(0)
-            else:
-                arr.append(1)
-    arr1 = []
-    for indx, _ in enumerate(test_file['all2']):
-        if test_file['firstt'][indx] == test_file['secondd'][indx]:
-            if test_file['all2'][indx] >= 0.45:
-                arr1.append(1)
-            else:
-                arr1.append(0)
-        else:
-            if test_file['all2'][indx] > 0.45:
-                arr1.append(0)
-            else:
-                arr1.append(1)
+    # arr = []
+    # for indx, _ in enumerate(test_file['all']):
+    #     if test_file['firstt'][indx] == test_file['secondd'][indx]:
+    #         if test_file['all'][indx] >= 0.45:
+    #             arr.append(1)
+    #         else:
+    #             arr.append(0)
+    #     else:
+    #         if test_file['all'][indx] > 0.45:
+    #             arr.append(0)
+    #         else:
+    #             arr.append(1)
+    # arr1 = []
+    # for indx, _ in enumerate(test_file['all2']):
+    #     if test_file['firstt'][indx] == test_file['secondd'][indx]:
+    #         if test_file['all2'][indx] >= 0.45:
+    #             arr1.append(1)
+    #         else:
+    #             arr1.append(0)
+    #     else:
+    #         if test_file['all2'][indx] > 0.45:
+    #             arr1.append(0)
+    #         else:
+    #             arr1.append(1)
 
     arr2 = []
     for indx, _ in enumerate(test_file['pfs']):
@@ -524,28 +523,28 @@ def update_excel(excel_file):
             else:
                 arr2.append(0)
     test_file["result3"]= arr2
-    test_file['result'] = arr
+    # test_file['result'] = arr
 
-    test_file['result2'] = arr1
+    # test_file['result2'] = arr1
     test_file.to_csv("final_GUI.csv")
-    return "final_GUI.csv", test_file['result'].mean(), test_file['result2'].mean(),test_file["result3"].mean()
+    return "final_GUI.csv",test_file["result3"].mean()
 def median_mean_test():
     # test_file = testing_excel(r"testing3.xlsx",r"C:\Users\97258\Desktop\Motaz")
     que1 = Queue()
     que2 = Queue()
-    test_file = pd.read_excel("../testing3_hebrew.xlsx")
+    test_file = pd.read_excel("../testing2_hebrew.xlsx")
     result1 =[]
-    for i in range(0,16):
+    for i in range(0,30):
         print("epoch",i+1)
         to_add =[]
-        model_path = r'C:\Users\FinalProject\Desktop\backup_models\CrossEntropy\hebrew\lr0.0003\model_0_epoch_{}.pt'.format(i+1)
-        median_avg, mean_avg,pfs_avg= main_test(test_file=test_file,data_for_each_person="../data2_for_each_person",model_path=model_path,que= que1, que2= que2,mode=False)
+        model_path = r'C:\Users\FinalProject\Desktop\backup_models\Triplet\custom_resnet_hebrew_25K_without_WD\model_epoch_{}.pt'.format(i+1)
+        pfs_avg= main_test(test_file=test_file,data_for_each_person="../data2_for_each_person",model_path=model_path,que= que1, que2= que2,mode=True)
         to_add.append(i+1)
         to_add.append(pfs_avg)
         print(f"pfs{pfs_avg}")
         result1.append(to_add)
     excell= pd.DataFrame(result1)
     headerr = ['step','pfs']
-    excell.to_excel('hebrew_flow_30.xlsx',index=False,header=headerr)
+    excell.to_excel('hebrew_30_flow_triplet_old_model_1000MISSMATCH.xlsx',index=False,header=headerr)
 
 # median_mean_test()

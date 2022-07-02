@@ -179,7 +179,7 @@ def triplet_test(model,test_loader, train_flag, loss_function, y_pred=None, y_tr
             batches_loss.append(loss.cpu().item())
             dist_a_p = F.pairwise_distance(output[0], output[1], 2)
             dist_a_n = F.pairwise_distance(output[0], output[2], 2)
-            for indx, i in enumerate((0, 0.5, 1, 1.5, 2)):
+            for indx, i in enumerate([1.5]):
                 pred = (dist_a_n - dist_a_p - i).cpu().data
                 if train_flag:
                     acc_for_batches_train[indx].append(((pred > 0).sum()*1.0/dist_a_p.size()[0]).item())
@@ -194,7 +194,7 @@ def triplet_test(model,test_loader, train_flag, loss_function, y_pred=None, y_tr
         
 
 if __name__ == '__main__':
-    writer = SummaryWriter("../runs/custom_resnet_hebrew_25K_without_WD")
+    writer = SummaryWriter("../runs/triplet/hebrew")
     train_line_data_set = LinesDataSetTripletWithLabel(csv_file="../train_labels_for_hebrew_triplet.csv", root_dir="../data2_for_each_person", transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     test_line_data_set = LinesDataSetTripletWithLabel(csv_file="../test_labels_for_hebrew_triplet.csv", root_dir='../data2_for_each_person',  transform=transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,),(0.5,))]))
     train_line_data_loader = DataLoader(train_line_data_set, shuffle=True, batch_size=30)
@@ -211,23 +211,23 @@ if __name__ == '__main__':
         print('epoch number: {}'.format(i + 1))
         loss_history_for_epoch = []
         loss_history_for_epoch_test = []
-        acc_for_batches = [[] for _ in range(5)]
-        acc_for_batches_train = [[] for _ in range(5)]
-        y_pred = [[] for _ in range(5)]
-        y_true = [[] for _ in range(5)]
+        acc_for_batches = [[] for _ in range(1)]
+        acc_for_batches_train = [[] for _ in range(1)]
+        y_pred = [[] for _ in range(1)]
+        y_true = [[] for _ in range(1)]
         triplet_train(my_model, loss_function, optimizer, train_line_data_loader)
         torch.save(my_model.state_dict(), f'../model_epoch_{i + 1}.pt')
         print(f'epoch loss: {sum(loss_history_for_epoch) / len(loss_history_for_epoch)}')
 
         print('Testing on Train Data_set...')
         triplet_test(my_model, train_line_data_loader_for_test, train_flag=True, loss_function=loss_function, y_true=y_true, y_pred=y_pred)
-        for index , i1 in enumerate((0, 0.5, 1, 1.5, 2)):
+        for index , i1 in enumerate([1.5]):
             print(f"train_acc_{i1}: ",100* (sum(acc_for_batches_train[index]) /  len(acc_for_batches_train[index])) )
-        writer.add_scalars("train_acc",{str(value) : (sum(acc_for_batches_train[indx]) /  len(acc_for_batches_train[indx])) for indx, value in enumerate((0, 0.5, 1, 1.5, 2))},i)
+        writer.add_scalars("train_acc",{str(value) : (sum(acc_for_batches_train[indx]) /  len(acc_for_batches_train[indx])) for indx, value in enumerate([1.5])},i)
 
         print('Testing on Test Data_set...')
         triplet_test(my_model, test_line_data_loader, train_flag=False, loss_function=loss_function, y_true=y_true, y_pred=y_pred)    
-        for index1 , i2 in enumerate((0, 0.5, 1, 1.5, 2)):
+        for index1 , i2 in enumerate([1.5]):
             print(f"test_acc{i2}: ",100* (sum(acc_for_batches[index1]) /  len(acc_for_batches[index1])) )
             cf_matrix = confusion_matrix(y_true[index1], y_pred[index1])
             classes = ('0', '1')
@@ -236,10 +236,9 @@ if __name__ == '__main__':
             plt.figure(figsize = (12,7))
             writer.add_figure('confusion_matrix_thresh_{}'.format(i2), sn.heatmap(df_cm, annot=True).get_figure(), i)
 
-        writer.add_scalars("test_acc",{str(value) : (100*(sum(acc_for_batches[indx]) /  len(acc_for_batches[indx]))) for indx, value in enumerate((0, 0.5, 1, 1.5, 2))},i)
+        writer.add_scalars("test_acc",{str(value) : (100*(sum(acc_for_batches[indx]) /  len(acc_for_batches[indx]))) for indx, value in enumerate([1.5])},i)
 
         writer.add_scalars("losses",{"train_loss": (sum(loss_history_for_epoch) / len(loss_history_for_epoch)), 'test_loss': (sum(loss_history_for_epoch_test) / len(loss_history_for_epoch_test))},i)
-
 
         
     writer.close()
