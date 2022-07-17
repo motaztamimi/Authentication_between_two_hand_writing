@@ -22,6 +22,7 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import skimage
 import time
+
 lang = ["Arabic", "Hebrew", "English"]
 mode = ["CrossEntropy", "Triplet"]
 
@@ -284,6 +285,8 @@ class MainGUI(Frame):
             figsize=(3, 2.5),
             dpi=100,
         )
+        plt.rcParams.update({'figure.max_open_warning': 0})
+
         self.label = ["same", "diff"]
         self.sizes = [10, 15]
         self.color = ["gold", "red"]
@@ -434,7 +437,7 @@ class MainGUI(Frame):
                 self.model_bylang[self.lang.get()],
                 self.queue,
                 self.queue2,
-                True,
+                False,
             ),
         )
         #self.mode_loss[self.mode_list.get()], return it for cross entropy

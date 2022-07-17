@@ -4,9 +4,9 @@ from scipy.signal import argrelextrema, savgol_filter
 import cv2
 from PIL import Image
 import os
+
+
 # from monkey_algorithm import neural_network_returned_vec
-
-
 def detect_lines(original):
     _, thresh = cv2.threshold(original, 127, 255, cv2.THRESH_BINARY_INV)
     hight, width = thresh.shape[:2]
@@ -228,4 +228,3 @@ def start_func(file_1, file_2):
                 num_of_letter += 1
         names_of_directories_file.append(directory_file)
 
-    # neural_network_returned_vec(names_of_directories_file)
