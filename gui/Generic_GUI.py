@@ -344,7 +344,6 @@ def find_miss_match_pairs_two_writer_generic(path, person1=1, person2=2):
         csv_file.to_csv("../filename1.csv", index=False, sep=',', header=0)
         csv_file = csv_file.sample(frac=1)
         csv_file = csv_file[0:30]
-        # print('Done.')
         return csv_file
 
 

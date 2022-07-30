@@ -218,6 +218,10 @@ def Delete_White_Lines(path='data_for_each_person'):
         for _dir in dirs:
             if _dir != '.Ds_Store':
                 files = os.listdir(dir_name+"/"+_dir)
+                num_of_rows_in_file = len(files)
+                count_removed =0
+                img_path_from_height = []
+                img_path_from_somewhere_else = []
                 # get inside each img in person
                 for indx, img in enumerate(files):
                     imgpath = dir_name+"/"+_dir+"/"+img
@@ -240,12 +244,24 @@ def Delete_White_Lines(path='data_for_each_person'):
                     Black_pixeles_for_right = right_sideof_line.size-white_pixeles_for_right
                     # if the wihte px in the right side equal to the size of the right side or smaler than it alittle
                     # so we will delete the line
-                    if right_sideof_line.size - 1500 < white_pixeles_for_right <= right_sideof_line.size:
+                    if img.shape[0] < 55:
                         count += 1
-                        os.remove(imgpath)
-                    elif img.shape[0] < 55:
+                        count_removed+=1
+                        img_path_from_height.append(imgpath)
+                        # os.remove(imgpath)
+                    elif right_sideof_line.size - 1500 < white_pixeles_for_right <= right_sideof_line.size:
                         count += 1
-                        os.remove(imgpath)
+                        count_removed+=1
+                        img_path_from_somewhere_else.append(imgpath)
+                        # os.remove(imgpath)
+                if  count_removed <= num_of_rows_in_file and count_removed >= num_of_rows_in_file - 5:
+                    for paths in img_path_from_height:
+                        os.remove(paths)
+                else:
+                    for paths in img_path_from_height:
+                        os.remove(paths)
+                    for paths in img_path_from_somewhere_else:
+                        os.remove(paths)
         print('Done, number of deleted lines: {}'.format(count))
 
 def Sorting_Dir(dirname):

@@ -44,6 +44,8 @@ def prepare_doc_test(path,foleder = "../data1_as_one_page"):
     files = os.listdir(path)
     file_number = 1
     i = 0
+    path_1 = None
+    path_2 = None
     for file in files:
         if ".tiff" not in file:
             continue
@@ -73,5 +75,5 @@ def prepare_doc_test(path,foleder = "../data1_as_one_page"):
             path_2 = '{}/{}.jpeg'.format(foleder,file.split('.')[0])
             concat_2.save(
                 '{}/{}.jpeg'.format(foleder,file.split('.')[0]))
-
+    
     return path_1, path_2

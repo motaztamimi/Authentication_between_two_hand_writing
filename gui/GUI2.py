@@ -410,7 +410,7 @@ class MainGUI(Frame):
                     tag = "diffrent"
                     self.difrrent += 1
                 print(tag)
-                self.plot_values()
+                # self.plot_values()
                 self.tv1.insert("", 0, values=out1, tags=(f"{tag}"))
         print("finishing keyy function")
         return
