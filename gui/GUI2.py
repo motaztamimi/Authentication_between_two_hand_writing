@@ -22,6 +22,9 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import skimage
 import time
+import seaborn as sn
+from sklearn.metrics import confusion_matrix
+from torch.utils.tensorboard import SummaryWriter
 
 lang = ["Arabic", "Hebrew", "English"]
 mode = ["CrossEntropy", "Triplet"]
@@ -201,7 +204,7 @@ class MainGUI(Frame):
                 borderwidth=3,
                 command=lambda: self.Testing_model(),
             )
-            self.calculate_button.config(width=15, height=2)
+            self.calculate_button.config(width=13, height=1)
             self.calculate_button.place(relx=0.63, rely=0.6)
             # ------------------------------ #
             #          Save button           #
@@ -216,7 +219,7 @@ class MainGUI(Frame):
                 border="1",
                 borderwidth=3,
             )
-            self.button5.config(width=15, height=2)
+            self.button5.config(width=13, height=1)
             self.button5.place(relx=0.82, rely=0.6)
             # ------------------------------ #
             #          Combo Box mode        #
@@ -391,6 +394,7 @@ class MainGUI(Frame):
 
             if self.queue:
                 out = self.queue.get()
+                print(f"row number: {out}")
                 self.vv = int((out / self.size) * 100)
                 self.txt["text"] = f"{self.vv} %"
                 self.Progress_Bar["value"] = ((out / self.size)) * 100
