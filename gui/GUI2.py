@@ -239,8 +239,8 @@ class MainGUI(Frame):
             style.theme_create("dummy", parent=aktualTheme)
             style.theme_use("dummy")  # style.theme_use("vista")
             self.tv1 = ttk.Treeview(self.Excel_Box)
-            self.tv1.tag_configure("Same", background="red")
-            self.tv1.tag_configure("diffrent",background="green")
+            self.tv1.tag_configure("Same", background="green")
+            self.tv1.tag_configure("diffrent",background="red")
             self.tv1.tag_configure("white",background="white")
 
             self.tv1.place(relheight=1, relwidth=1, width=1)

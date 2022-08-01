@@ -23,7 +23,15 @@ import shutil
 from multiprocessing import Queue
 import models.triplet_model as triplet_model
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
+def highlight_cells():
+    # provide your criteria for highlighting the cells here
+    return ['background-color: yellow']
+def color_by_tag(v):       
+    if v == "Same":
+        color = 'green'
+    else:
+        color = 'red'
+    return 'color: %s' % color
 def testing_excel(excel_path, data_path, model, que, que2 ,mode=False):
     print("Starting reading excel file")
     test_file = pd.read_excel(excel_path)
@@ -161,6 +169,8 @@ def looping_into_excel(Excel_file, model_path, data_for_each_person, que, que2, 
     headerr = ["first", "second", "pfirst", "pfirst_std", "pfirst_median",
                "pfs", "pfs_std", "pfs_median", "psecond", "psecond_std", "psecond_median"]
     main_Excel.to_excel("../final1.xlsx", index=False, header=headerr)
+    main_excel2.style.apply(highlight_cells,subset=["simple__result"])  
+
     main_excel2.to_excel("../final_result.xlsx",index=False, header=header2)
     #need to return to final_result
     return "../final1.xlsx"

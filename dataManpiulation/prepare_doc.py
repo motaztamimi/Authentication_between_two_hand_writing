@@ -60,6 +60,7 @@ def prepare_doc_test(path,foleder = "../data1_as_one_page"):
             img.seek(1)
             page2 = cut_width(img, 2)
             array_images.append(page2)
+            img.close()
         except EOFError:
             break
 
